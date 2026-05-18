@@ -7,7 +7,7 @@
 import React from 'react';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import {
-  PhoneScreen, Body, Eyebrow, Card, Pill, Avatar, IconBtn, TLItem, BackBtn,
+  PhoneScreen, Body, Eyebrow, Card, Pill, Avatar, TLItem, BackBtn,
 } from '../../ui/shared.jsx';
 import { I } from '../../ui/icons.jsx';
 import { useArrivals, useRooms } from '../../store/data.js';
@@ -55,8 +55,6 @@ export default function ReceptionGuestDetail() {
                 {arrival?.stay || '—'} · {arrival?.plan?.split(' · ')[1] || 'sin plan'}
               </div>
             </div>
-            <IconBtn icon={I.phone}/>
-            <IconBtn icon={I.msg} onClick={() => navigate(`/reception/chat/${guestId}`)}/>
           </Card>
         </div>
 

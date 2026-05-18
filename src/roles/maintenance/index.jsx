@@ -9,17 +9,24 @@ import MaintenanceTickets from './Tickets.jsx';
 import MaintenanceDetail  from './Detail.jsx';
 import MaintenanceHistory from './History.jsx';
 import RoleMe             from '../../ui/RoleMe.jsx';
-
-const tabs = [
-  { id: 'open',  label: 'Abiertos', icon: I.wrench, to: '/maintenance' },
-  { id: 'done',  label: 'Hist.',    icon: I.list,   to: '/maintenance/history' },
-  { id: 'me',    label: 'Yo',       icon: I.user,   to: '/maintenance/me' },
-];
+import AreaChat           from '../../ui/AreaChat.jsx';
+import { useChatUnread }  from '../../store/chat.js';
+import { useCurrentUser } from '../../store/auth.js';
 
 function MaintenanceShell() {
   const { pathname } = useLocation();
-  // Pantalla de detalle va full-bleed (sin TabBar)
-  const hideTabs = pathname.includes('/ticket/');
+  const user   = useCurrentUser();
+  const unread = useChatUnread(user?.roleId);
+
+  const hideTabs = pathname.includes('/ticket/') || pathname.includes('/chat');
+
+  const tabs = [
+    { id: 'open', label: 'Abiertos', icon: I.wrench, to: '/maintenance' },
+    { id: 'done', label: 'Hist.',    icon: I.list,   to: '/maintenance/history' },
+    { id: 'chat', label: 'Chat',     icon: I.msg,    to: '/maintenance/chat', badge: unread || undefined },
+    { id: 'me',   label: 'Yo',       icon: I.user,   to: '/maintenance/me' },
+  ];
+
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
@@ -34,10 +41,11 @@ export default function MaintenanceRoutes() {
   return (
     <Routes>
       <Route element={<MaintenanceShell />}>
-        <Route index               element={<MaintenanceTickets />} />
-        <Route path="ticket/:id"   element={<MaintenanceDetail />} />
-        <Route path="history"      element={<MaintenanceHistory />} />
-        <Route path="me"           element={<RoleMe />} />
+        <Route index             element={<MaintenanceTickets />} />
+        <Route path="ticket/:id" element={<MaintenanceDetail />} />
+        <Route path="history"    element={<MaintenanceHistory />} />
+        <Route path="chat"       element={<AreaChat role="maintenance" />} />
+        <Route path="me"         element={<RoleMe />} />
       </Route>
     </Routes>
   );

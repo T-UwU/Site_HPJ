@@ -11,18 +11,25 @@ import SalesCustomers      from './Customers.jsx';
 import SalesNewReservation from './NewReservation.jsx';
 import SalesVIPDetail      from './VIPDetail.jsx';
 import RoleMe              from '../../ui/RoleMe.jsx';
-
-const tabs = [
-  { id: 'pipe', label: 'Reservas',   icon: I.list,  to: '/sales' },
-  { id: 'cal',  label: 'Calendario', icon: I.cal,   to: '/sales/calendar' },
-  { id: 'cust', label: 'Clientes',   icon: I.users, to: '/sales/customers' },
-  { id: 'me',   label: 'Yo',         icon: I.user,  to: '/sales/me' },
-];
+import AreaChat            from '../../ui/AreaChat.jsx';
+import { useChatUnread }   from '../../store/chat.js';
+import { useCurrentUser }  from '../../store/auth.js';
 
 function SalesShell() {
   const { pathname } = useLocation();
-  // Pantallas full-bleed: nueva reserva (formulario) y detalle VIP (header inmersivo)
-  const hideTabs = pathname.includes('/new') || pathname.includes('/customer/');
+  const user   = useCurrentUser();
+  const unread = useChatUnread(user?.roleId);
+
+  const hideTabs = pathname.includes('/new') || pathname.includes('/customer/') || pathname.includes('/chat');
+
+  const tabs = [
+    { id: 'pipe', label: 'Reservas',   icon: I.list,  to: '/sales' },
+    { id: 'cal',  label: 'Calendario', icon: I.cal,   to: '/sales/calendar' },
+    { id: 'cust', label: 'Clientes',   icon: I.users, to: '/sales/customers' },
+    { id: 'chat', label: 'Chat',       icon: I.msg,   to: '/sales/chat', badge: unread || undefined },
+    { id: 'me',   label: 'Yo',         icon: I.user,  to: '/sales/me' },
+  ];
+
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
@@ -42,6 +49,7 @@ export default function SalesRoutes() {
         <Route path="customers"    element={<SalesCustomers />} />
         <Route path="customer/:id" element={<SalesVIPDetail />} />
         <Route path="new"          element={<SalesNewReservation />} />
+        <Route path="chat"         element={<AreaChat role="sales" />} />
         <Route path="me"           element={<RoleMe />} />
       </Route>
     </Routes>

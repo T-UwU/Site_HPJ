@@ -13,12 +13,14 @@ import {
 import { I } from '../../ui/icons.jsx';
 import { useCurrentUser } from '../../store/auth.js';
 import { useArrivals } from '../../store/data.js';
+import { useChatUnread } from '../../store/chat.js';
 
 export default function ReceptionHome() {
   const navigate = useNavigate();
-  const user = useCurrentUser();
+  const user   = useCurrentUser();
   const arrivals = useArrivals();
-  const pending = arrivals.filter((a) => !a.done);
+  const pending  = arrivals.filter((a) => !a.done);
+  const unread   = useChatUnread(user?.roleId);
 
   return (
     <PhoneScreen>
@@ -29,7 +31,7 @@ export default function ReceptionHome() {
         serif
         trailing={<>
           <IconBtn icon={I.search}/>
-          <IconBtn icon={I.bell} badge="4"/>
+          <IconBtn icon={I.bell} badge={unread || undefined} onClick={() => navigate('/reception/chat')}/>
         </>}
       />
       <Body style={{ paddingBottom: 80 }}>

@@ -160,7 +160,19 @@ export function TabBar({ items, active }) {
         if (it.to) {
           return (
             <NavLink key={it.id} to={it.to} end className={({ isActive }) => `tab ${isActive ? 'active' : ''}`}>
-              <span style={{ height: 20, display: 'flex', alignItems: 'center' }}>{it.icon}</span>
+              <span style={{ height: 20, display: 'flex', alignItems: 'center', position: 'relative' }}>
+                {it.icon}
+                {!!it.badge && (
+                  <span style={{
+                    position: 'absolute', top: -4, right: -7,
+                    minWidth: 14, height: 14, padding: '0 3px',
+                    borderRadius: 999, background: 'var(--danger)', color: '#fff',
+                    fontSize: 9, fontWeight: 700, lineHeight: '14px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: '1.5px solid var(--bg)',
+                  }}>{it.badge > 9 ? '9+' : it.badge}</span>
+                )}
+              </span>
               <span>{it.label}</span>
               <span className="ind"/>
             </NavLink>
