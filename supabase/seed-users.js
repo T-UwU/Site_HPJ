@@ -48,13 +48,10 @@ const admin = createClient(url, key, {
 const DEMO_PASSWORD = 'demo1234';
 
 const USERS = [
-  { email: 'recepcion@palaciojulio.test',     name: 'Lucía Ramírez',     role_id: 'reception' },
-  { email: 'limpieza@palaciojulio.test',      name: 'Mariana Cruz',      role_id: 'housekeeping' },
-  { email: 'cocina@palaciojulio.test',        name: 'Chef Joaquín O.',   role_id: 'kitchen' },
   { email: 'ventas@palaciojulio.test',        name: 'Patricia Salinas',  role_id: 'sales' },
+  { email: 'recepcion@palaciojulio.test',     name: 'Lucía Ramírez',     role_id: 'reception' },
   { email: 'mantenimiento@palaciojulio.test', name: 'Eduardo Galindo',   role_id: 'maintenance' },
-  { email: 'gerencia@palaciojulio.test',      name: 'Sr. Solano',        role_id: 'management' },
-  { email: 'concierge@palaciojulio.test',     name: 'Diego Aragón',      role_id: 'concierge' },
+  { email: 'limpieza@palaciojulio.test',      name: 'Mariana Cruz',      role_id: 'housekeeping' },
 ];
 
 // ── Ejecutar ────────────────────────────────────────────────────────
