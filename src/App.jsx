@@ -1,0 +1,96 @@
+// src/App.jsx — Router raíz + bootstrap de sesión.
+
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
+import { useAuth, ROLES } from './store/auth.js';
+import { PhoneShell } from './ui/PhoneShell.jsx';
+import { RequireAuth } from './routes/RequireAuth.jsx';
+
+import Login from './pages/Login.jsx';
+
+import ReceptionRoutes    from './roles/reception/index.jsx';
+import HousekeepingRoutes from './roles/housekeeping/index.jsx';
+import SalesRoutes        from './roles/sales/index.jsx';
+import MaintenanceRoutes  from './roles/maintenance/index.jsx';
+
+function RootRedirect() {
+  const user = useAuth((s) => s.user);
+  if (!user) return <Navigate to="/login" replace />;
+  return <Navigate to={ROLES[user.roleId].home} replace />;
+}
+
+// Splash mientras la sesión se rehidrata (solo aparece en modo online)
+function Splash() {
+  return (
+    <div className="hpj" style={{
+      height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'var(--bg)', flexDirection: 'column', gap: 14,
+    }}>
+      <div className="hpj-mark" style={{ fontSize: 10 }}>Sistema operativo</div>
+      <div className="hpj-serif" style={{ fontSize: 28, color: 'var(--forest-deep)' }}>Palacio Julio</div>
+      <div style={{
+        marginTop: 14, width: 18, height: 18,
+        border: '2px solid var(--line)', borderTopColor: 'var(--forest)',
+        borderRadius: '50%', animation: 'spin 0.9s linear infinite',
+      }}/>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+}
+
+export default function App() {
+  const initSession = useAuth((s) => s.initSession);
+  const loading = useAuth((s) => s.loading);
+
+  useEffect(() => {
+    initSession();
+  }, [initSession]);
+
+  return (
+    <BrowserRouter>
+      <PhoneShell>
+        {loading ? <Splash /> : (
+          <Routes>
+            <Route path="/" element={<RootRedirect />} />
+            <Route path="/login" element={<Login />} />
+
+            <Route path="/reception/*" element={
+              <RequireAuth role="reception"><ReceptionRoutes /></RequireAuth>
+            }/>
+            <Route path="/housekeeping/*" element={
+              <RequireAuth role="housekeeping"><HousekeepingRoutes /></RequireAuth>
+            }/>
+            <Route path="/sales/*" element={
+              <RequireAuth role="sales"><SalesRoutes /></RequireAuth>
+            }/>
+            <Route path="/maintenance/*" element={
+              <RequireAuth role="maintenance"><MaintenanceRoutes /></RequireAuth>
+            }/>
+
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        )}
+      </PhoneShell>
+    </BrowserRouter>
+  );
+}
+
+function NotFound() {
+  return (
+    <div className="hpj" style={{
+      padding: 32, height: '100%', display: 'flex',
+      alignItems: 'center', justifyContent: 'center', textAlign: 'center',
+    }}>
+      <div>
+        <div className="hpj-serif" style={{ fontSize: 36, color: 'var(--ink-2)' }}>404</div>
+        <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 8 }}>Esta página no existe.</div>
+        <a href="/" style={{
+          display: 'inline-block', marginTop: 18,
+          color: 'var(--forest)', fontSize: 13, fontWeight: 500,
+          textDecoration: 'underline', textUnderlineOffset: 4,
+        }}>Volver al inicio</a>
+      </div>
+    </div>
+  );
+}
