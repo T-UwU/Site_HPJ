@@ -263,7 +263,7 @@ export function BrandStrip({ role }) {
 export function FAB({ icon, label, onClick, style }) {
   return (
     <button onClick={onClick} style={{
-      position: 'absolute', right: 18, bottom: 88, zIndex: 6,
+      position: 'absolute', right: 18, bottom: 18, zIndex: 6,
       height: 52, padding: label ? '0 18px 0 16px' : 0, width: label ? undefined : 52,
       borderRadius: 999, border: 'none', cursor: 'pointer',
       background: 'var(--forest)', color: 'var(--bg)',

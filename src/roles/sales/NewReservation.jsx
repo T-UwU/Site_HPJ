@@ -20,7 +20,7 @@ const PLANS = [
   { id: 'pension', label: 'Pensión',        extraPerNight: 920 },
 ];
 
-export default function SalesNewReservation() {
+export default function SalesNewReservation({ role = 'sales' }) {
   const navigate = useNavigate();
   const roomTypes = useRoomTypes();
   const { addReservation } = useActions();
@@ -56,24 +56,24 @@ export default function SalesNewReservation() {
   const confirm = () => {
     addReservation({
       guestName,
-      channel: 'Llamada directa · Ventas',
+      channel: role === 'reception' ? 'Recepción directa' : 'Llamada directa · Ventas',
       stay: `${checkIn}–${checkOut} · ${nights}n`,
       checkIn, checkOut, nights,
-      room: '—', // se asigna desde Recepción
+      room: '—',
       roomType: selectedRoom.name,
       plan: selectedPlan.label === 'Solo hosp.' ? 'Solo hospedaje' : selectedPlan.label,
       amount: totals.total,
       status: 'confirmada',
       vip: false, group: false, today: false,
     });
-    navigate('/sales');
+    navigate(`/${role}`);
   };
 
   return (
     <PhoneScreen>
-      <BrandStrip role="sales"/>
+      <BrandStrip role={role}/>
       <AppBar
-        eyebrow="Llamada en curso · 04:18"
+        eyebrow={role === 'reception' ? 'Recepción · presencial' : 'Llamada en curso · 04:18'}
         title="Nueva reserva"
         leading={<BackBtn label=""/>}
         trailing={<IconBtn icon={I.phone} style={{ background: 'var(--ok)', color: '#fff', border: 'none' }}/>}

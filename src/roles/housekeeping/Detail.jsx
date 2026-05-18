@@ -43,7 +43,7 @@ export default function HousekeepingDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const tasks = useTasks();
-  const { progressTask, startTask } = useActions();
+  const { progressTask, startTask, completeTask } = useActions();
 
   const task = tasks.find((t) => t.id === id);
   if (!task) return <Navigate to="/housekeeping" replace />;
@@ -65,8 +65,8 @@ export default function HousekeepingDetail() {
 
     const newProgress = progress + 1;
     if (newProgress >= total) {
-      progressTask(task.id, total);
-      navigate(`/housekeeping/evidence/${task.id}`);
+      completeTask(task.id);
+      navigate('/housekeeping');
     } else {
       progressTask(task.id, newProgress);
     }
@@ -132,7 +132,7 @@ export default function HousekeepingDetail() {
         <div style={{ padding: '16px', display: 'flex', gap: 8 }}>
           <button className="btn btn-ghost" style={{ flex: 1 }}>Pausar</button>
           <button className="btn btn-primary" style={{ flex: 2 }} onClick={handleNext}>
-            {progress + 1 >= total ? 'Ir a evidencia →' : `Siguiente paso (${progress + 1}/${total}) →`}
+            {progress + 1 >= total ? 'Completar tarea ✓' : `Siguiente paso (${progress + 1}/${total}) →`}
           </button>
         </div>
       </Body>

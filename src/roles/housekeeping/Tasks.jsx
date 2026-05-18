@@ -12,10 +12,14 @@ import {
 } from '../../ui/shared.jsx';
 import { I } from '../../ui/icons.jsx';
 import { useTasks } from '../../store/data.js';
+import { useActivityUnread } from '../../store/activity.js';
+import { useCurrentUser } from '../../store/auth.js';
 
 export default function HousekeepingTasks() {
-  const navigate = useNavigate();
-  const tasks = useTasks();
+  const navigate  = useNavigate();
+  const tasks     = useTasks();
+  const user      = useCurrentUser();
+  const actUnread = useActivityUnread(user?.roleId);
 
   const pending   = tasks.filter((t) => t.status !== 'completada');
   const completed = tasks.filter((t) => t.status === 'completada');
@@ -32,7 +36,7 @@ export default function HousekeepingTasks() {
         subtitle={`${tasks.length} asignadas · ${completed.length} completadas`}
         trailing={<>
           <IconBtn icon={I.filter}/>
-          <IconBtn icon={I.bell} badge="2"/>
+          <IconBtn icon={I.bell} badge={actUnread || undefined} onClick={() => navigate('/housekeeping/notifications')}/>
         </>}
       />
       <ProgressBar pct={pct}/>
@@ -85,62 +89,45 @@ function ProgressBar({ pct }) {
 }
 
 function TaskCard({ task, onClick }) {
-  const { room, typeLabel, type, priority, note, sla, tags = [], status, progress, total } = task;
+  const { room, typeLabel, type, priority, sla, tags = [], status, progress, total } = task;
   const active = status === 'en-curso';
   const prioColor =
     priority === 'alta'  ? 'var(--danger)' :
     priority === 'media' ? 'var(--warn)'   :
     'var(--muted-2)';
+  const hasAllergen = tags.includes('Sin frutos secos');
 
   return (
-    <Card style={{ padding: 14, borderLeft: `3px solid ${prioColor}`, position: 'relative' }} onClick={onClick}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+    <Card style={{ padding: 12, borderLeft: `3px solid ${prioColor}` }} onClick={onClick}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{
-          width: 48, height: 48, borderRadius: 10,
+          width: 44, height: 44, borderRadius: 10, flexShrink: 0,
           background: active ? 'var(--brass-soft)' : 'var(--forest-soft)',
           color: active ? 'var(--brass-deep)' : 'var(--forest-deep)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          fontFamily: 'var(--serif)', flexShrink: 0,
+          fontFamily: 'var(--serif)',
         }}>
-          <span style={{ fontSize: 18, fontWeight: 500, lineHeight: 1 }}>{room}</span>
-          <span style={{ fontSize: 8, marginTop: 2, letterSpacing: '0.1em' }}>HAB.</span>
+          <span style={{ fontSize: 17, fontWeight: 500, lineHeight: 1 }}>{room}</span>
+          <span style={{ fontSize: 8, marginTop: 1, letterSpacing: '0.1em', opacity: 0.6 }}>HAB.</span>
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ fontSize: 14, fontWeight: 500 }}>{typeLabel || type}</span>
-            <Pill kind={priority === 'alta' ? 'danger' : priority === 'media' ? 'warn' : ''}
-              style={{ height: 18, fontSize: 10 }}>{priority.toUpperCase()}</Pill>
+            {active && <Pill kind="brass" style={{ height: 16, fontSize: 9 }}>EN CURSO</Pill>}
           </div>
-          {note && <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4, lineHeight: 1.45 }}>{note}</div>}
-          {sla && (
-            <div style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span style={{ color: 'var(--muted-2)' }}>{I.clock}</span>
-              <span className="hpj-mono">{sla}</span>
-            </div>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+            {sla && (
+              <span className="hpj-mono" style={{ fontSize: 11, color: 'var(--muted)' }}>{sla}</span>
+            )}
+            {hasAllergen && <Pill kind="danger" style={{ height: 16, fontSize: 9 }}>ALERGIA</Pill>}
+          </div>
         </div>
+        <Pill kind={priority === 'alta' ? 'danger' : priority === 'media' ? 'warn' : ''}
+          style={{ height: 18, fontSize: 10, flexShrink: 0 }}>{priority.toUpperCase()}</Pill>
       </div>
-
-      {tags.length > 0 && (
-        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 10 }}>
-          {tags.map((t) => (
-            <Pill key={t} kind={t.toLowerCase().includes('sin') ? 'danger' : 'ghost'} style={{ height: 18, fontSize: 10 }}>{t}</Pill>
-          ))}
-        </div>
-      )}
-
-      {active && total && (
-        <div style={{ marginTop: 10, padding: 10, borderRadius: 10, background: 'var(--brass-soft)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: 'var(--brass-deep)', fontWeight: 600 }}>
-            <span style={{ letterSpacing: '0.06em', textTransform: 'uppercase' }}>EN CURSO</span>
-            <span className="hpj-mono">Checklist {progress}/{total}</span>
-          </div>
-          <div style={{
-            marginTop: 6, height: 4, borderRadius: 999,
-            background: 'rgba(160,129,74,0.18)', overflow: 'hidden',
-          }}>
-            <div style={{ width: (progress / total * 100) + '%', height: '100%', background: 'var(--brass)' }}/>
-          </div>
+      {active && total > 0 && (
+        <div style={{ marginTop: 8, height: 3, borderRadius: 999, background: 'var(--card-2)', overflow: 'hidden' }}>
+          <div style={{ width: ((progress || 0) / total * 100) + '%', height: '100%', background: 'var(--brass)' }}/>
         </div>
       )}
     </Card>

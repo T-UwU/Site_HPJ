@@ -12,18 +12,25 @@ import ReceptionRooms       from './Rooms.jsx';
 import ReceptionGuestDetail from './GuestDetail.jsx';
 import RoleMe               from '../../ui/RoleMe.jsx';
 import AreaChat             from '../../ui/AreaChat.jsx';
+import Notifications        from '../../ui/Notifications.jsx';
+import SalesNewReservation  from '../sales/NewReservation.jsx';
 import { useChatUnread }    from '../../store/chat.js';
+import { useActivityUnread } from '../../store/activity.js';
 import { useCurrentUser }   from '../../store/auth.js';
 
 function ReceptionShell() {
   const { pathname } = useLocation();
-  const user   = useCurrentUser();
-  const unread = useChatUnread(user?.roleId);
+  const user      = useCurrentUser();
+  const chatUnread = useChatUnread(user?.roleId);
+  const actUnread  = useActivityUnread(user?.roleId);
+  const unread = chatUnread + actUnread;
 
   const hideTabs =
-    pathname.includes('/checkin') ||
-    pathname.includes('/guest/')  ||
-    pathname.includes('/chat');
+    pathname.includes('/checkin')       ||
+    pathname.includes('/guest/')        ||
+    pathname.includes('/chat')          ||
+    pathname.includes('/new')           ||
+    pathname.includes('/notifications');
 
   const tabs = [
     { id: 'home',     label: 'Inicio',   icon: I.home,     to: '/reception' },
@@ -48,12 +55,14 @@ export default function ReceptionRoutes() {
     <Routes>
       <Route element={<ReceptionShell />}>
         <Route index                   element={<ReceptionHome />} />
-        <Route path="arrivals"         element={<ReceptionArrivals />} />
-        <Route path="checkin/:guestId" element={<ReceptionCheckIn />} />
-        <Route path="rooms"            element={<ReceptionRooms />} />
-        <Route path="guest/:guestId"   element={<ReceptionGuestDetail />} />
-        <Route path="chat"             element={<AreaChat role="reception" />} />
-        <Route path="me"               element={<RoleMe />} />
+        <Route path="arrivals"          element={<ReceptionArrivals />} />
+        <Route path="checkin/:guestId"  element={<ReceptionCheckIn />} />
+        <Route path="rooms"             element={<ReceptionRooms />} />
+        <Route path="guest/:guestId"    element={<ReceptionGuestDetail />} />
+        <Route path="new"               element={<SalesNewReservation role="reception" />} />
+        <Route path="chat"              element={<AreaChat role="reception" />} />
+        <Route path="notifications"     element={<Notifications />} />
+        <Route path="me"                element={<RoleMe />} />
       </Route>
     </Routes>
   );

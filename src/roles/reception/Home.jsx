@@ -8,19 +8,25 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   PhoneScreen, BrandStrip, AppBar, IconBtn, Body, Metric, Eyebrow,
-  Card, Avatar, Pill, Broadcast,
+  Card, Avatar, Pill,
 } from '../../ui/shared.jsx';
 import { I } from '../../ui/icons.jsx';
 import { useCurrentUser } from '../../store/auth.js';
 import { useArrivals } from '../../store/data.js';
-import { useChatUnread } from '../../store/chat.js';
+import { useActivity, useActivityUnread } from '../../store/activity.js';
+
+const ROLE_LABEL = {
+  reception: 'Recepción', housekeeping: 'Limpieza',
+  sales: 'Ventas', maintenance: 'Mantenimiento',
+};
 
 export default function ReceptionHome() {
   const navigate = useNavigate();
-  const user   = useCurrentUser();
+  const user     = useCurrentUser();
   const arrivals = useArrivals();
   const pending  = arrivals.filter((a) => !a.done);
-  const unread   = useChatUnread(user?.roleId);
+  const unread   = useActivityUnread(user?.roleId);
+  const events   = useActivity((s) => s.events);
 
   return (
     <PhoneScreen>
@@ -31,7 +37,7 @@ export default function ReceptionHome() {
         serif
         trailing={<>
           <IconBtn icon={I.search}/>
-          <IconBtn icon={I.bell} badge={unread || undefined} onClick={() => navigate('/reception/chat')}/>
+          <IconBtn icon={I.bell} badge={unread || undefined} onClick={() => navigate('/reception/notifications')}/>
         </>}
       />
       <Body style={{ paddingBottom: 80 }}>
@@ -70,13 +76,34 @@ export default function ReceptionHome() {
             </div>
             <span style={{ color: 'var(--muted-2)' }}>{I.chevR}</span>
           </Card>
+
+          <Card
+            style={{ padding: 14, display: 'flex', alignItems: 'center', gap: 12 }}
+            onClick={() => navigate('/reception/new')}
+          >
+            <div style={{
+              width: 40, height: 40, borderRadius: 10, background: '#EDE6F4',
+              color: '#7C5F8A', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>{I.plus}</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, color: 'var(--muted)' }}>Nueva reserva</div>
+              <div style={{ fontSize: 13, marginTop: 2 }}>Registrar huésped directo</div>
+            </div>
+            <span style={{ color: 'var(--muted-2)' }}>{I.chevR}</span>
+          </Card>
         </div>
 
-        <Eyebrow right="hace 2 min">Actividad cruzada</Eyebrow>
+        <Eyebrow right={<span style={{ cursor: 'pointer' }} onClick={() => navigate('/reception/notifications')}>ver todo</span>}>
+          Actividad cruzada
+        </Eyebrow>
         <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <Broadcast from="housekeeping" action="Habitación 217 lista para entrega" room="217" time="08:42" status="read"/>
-          <Broadcast from="sales" action="Reserva confirmada para 304 · 16:30" room="304" time="08:38"/>
-          <Broadcast from="maintenance" action="Aire acond. reparado, vuelve a stock" room="412" time="08:21" status="read"/>
+          {events.length === 0 ? (
+            <div style={{ fontSize: 12, color: 'var(--muted)', padding: '4px 0' }}>Sin actividad reciente.</div>
+          ) : (
+            events.slice(0, 3).map((ev) => (
+              <ActivityRow key={ev.id} ev={ev}/>
+            ))
+          )}
         </div>
 
         <Eyebrow>Próximas llegadas</Eyebrow>
@@ -91,6 +118,30 @@ export default function ReceptionHome() {
         </div>
       </Body>
     </PhoneScreen>
+  );
+}
+
+const ROLE_COLOR = {
+  reception: 'var(--brass)', housekeeping: 'var(--info)',
+  sales: '#7C5F8A', maintenance: 'var(--danger)',
+};
+
+function ActivityRow({ ev }) {
+  const color = ROLE_COLOR[ev.role] || 'var(--ink-3)';
+  const label = ROLE_LABEL[ev.role] || ev.role;
+  const time  = new Date(ev.created_at).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+  return (
+    <div style={{
+      padding: '10px 12px', borderRadius: 10, background: 'var(--card-2)',
+      border: '1px dashed var(--hairline)', display: 'flex', alignItems: 'center', gap: 10,
+    }}>
+      <span style={{ width: 8, height: 8, borderRadius: 2, background: color, flexShrink: 0 }}/>
+      <div style={{ flex: 1, fontSize: 12 }}>
+        <div><b style={{ fontWeight: 600 }}>{label}</b> · {ev.action}</div>
+        {ev.room && <div style={{ color: 'var(--muted)', fontSize: 11, marginTop: 2 }}>Hab {ev.room} · {time}</div>}
+        {!ev.room && <div style={{ color: 'var(--muted)', fontSize: 11, marginTop: 2 }}>{time}</div>}
+      </div>
+    </div>
   );
 }
 

@@ -11,6 +11,13 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { seed } from './seed';
 
+const logActivity = (role, actor, action, room, refId) => {
+  // Lazy import to avoid circular dep at module load time
+  import('./activity.js').then(({ useActivity }) => {
+    useActivity.getState().log(role, actor, action, room, refId);
+  });
+};
+
 const upsert = (list, id, patch) =>
   list.map((it) => (it.id === id ? { ...it, ...patch } : it));
 
@@ -31,30 +38,47 @@ export const useData = create(
           set((s) => ({ requests: upsert(s.requests, id, { status: 'completada' }) })),
 
         // ── Tickets (mantenimiento) ───────────────────────
-        addTicket: (t) =>
-          set((s) => ({ tickets: [{ id: `M-${Date.now()}`, ...t }, ...s.tickets] })),
+        addTicket: (t) => {
+          const id = `M-${Date.now()}`;
+          set((s) => ({ tickets: [{ id, ...t }, ...s.tickets] }));
+          logActivity(
+            t.reportedBy || 'maintenance',
+            t.reporter   || '—',
+            `Ticket creado: ${t.desc || t.category || 'Sin descripción'}`,
+            t.room, id
+          );
+        },
         acceptTicket: (id) =>
           set((s) => ({ tickets: upsert(s.tickets, id, { status: 'aceptado', progress: 0 }) })),
         progressTicket: (id, progress) =>
           set((s) => ({ tickets: upsert(s.tickets, id, { progress }) })),
-        closeTicket: (id) =>
-          set((s) => ({ tickets: upsert(s.tickets, id, { status: 'cerrado' }) })),
+        closeTicket: (id) => {
+          const ticket = get().tickets.find((t) => t.id === id);
+          set((s) => ({ tickets: upsert(s.tickets, id, { status: 'cerrado' }) }));
+          logActivity('maintenance', '—', `Ticket cerrado: ${ticket?.desc || id}`, ticket?.room, id);
+        },
 
         // ── Tareas (limpieza) ─────────────────────────────
         startTask: (id, assignedTo) =>
           set((s) => ({ tasks: upsert(s.tasks, id, { status: 'en-curso', assignedTo, progress: 0 }) })),
         progressTask: (id, progress) =>
           set((s) => ({ tasks: upsert(s.tasks, id, { progress }) })),
-        completeTask: (id) =>
-          set((s) => ({ tasks: upsert(s.tasks, id, { status: 'terminada', progress: 100 }) })),
+        completeTask: (id) => {
+          const task = get().tasks.find((t) => t.id === id);
+          set((s) => ({ tasks: upsert(s.tasks, id, { status: 'completada', progress: 100 }) }));
+          logActivity('housekeeping', task?.assignedTo || 'Limpieza', `Hab lista: ${task?.typeLabel || task?.type || 'Tarea'}`, task?.room, id);
+        },
 
         // ── Habitaciones ──────────────────────────────────
         setRoomStatus: (id, status) =>
           set((s) => ({ rooms: upsert(s.rooms, id, { status }) })),
 
         // ── Llegadas (Recepción) ──────────────────────────
-        markArrived: (id) =>
-          set((s) => ({ arrivals: upsert(s.arrivals, id, { done: true, statusLabel: 'En habitación', status: 'ok' }) })),
+        markArrived: (id) => {
+          const arrival = get().arrivals.find((a) => a.id === id);
+          set((s) => ({ arrivals: upsert(s.arrivals, id, { done: true, statusLabel: 'En habitación', status: 'ok' }) }));
+          logActivity('reception', 'Recepción', `Check-in: ${arrival?.guest || '—'}`, arrival?.room, id);
+        },
 
         // ── Cocina ────────────────────────────────────────
         startOrder: (id) =>
@@ -98,10 +122,17 @@ export const useData = create(
           }),
 
         // ── Ventas ────────────────────────────────────────
-        addReservation: (r) =>
-          set((s) => ({ reservations: [{ id: `R-${Date.now()}`, ...r }, ...s.reservations] })),
-        confirmReservation: (id) =>
-          set((s) => ({ reservations: upsert(s.reservations, id, { status: 'confirmada' }) })),
+        addReservation: (r) => {
+          const id = `R-${Date.now()}`;
+          set((s) => ({ reservations: [{ id, ...r }, ...s.reservations] }));
+          const origin = r.channel?.includes('Recepción') ? 'reception' : 'sales';
+          logActivity(origin, r.channel || 'Ventas', `Reserva: ${r.guestName || '—'} · ${r.stay || ''}`, r.room, id);
+        },
+        confirmReservation: (id) => {
+          const res = get().reservations.find((r) => r.id === id);
+          set((s) => ({ reservations: upsert(s.reservations, id, { status: 'confirmada' }) }));
+          logActivity('sales', 'Ventas', `Reserva confirmada: ${res?.guestName || id}`, res?.room, id);
+        },
 
         // ── Reset total (útil en dev) ─────────────────────
         resetAll: () => set({ ...seed }),

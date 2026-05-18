@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import { useAuth, ROLES } from './store/auth.js';
 import { useChat } from './store/chat.js';
+import { useActivity } from './store/activity.js';
 import { PhoneShell } from './ui/PhoneShell.jsx';
 import { RequireAuth } from './routes/RequireAuth.jsx';
 
@@ -41,13 +42,15 @@ function Splash() {
 }
 
 export default function App() {
-  const initSession = useAuth((s) => s.initSession);
-  const initChat    = useChat((s) => s.init);
+  const initSession  = useAuth((s) => s.initSession);
+  const initChat     = useChat((s) => s.init);
+  const initActivity = useActivity((s) => s.init);
   const loading = useAuth((s) => s.loading);
 
   useEffect(() => {
     initSession();
     initChat();
+    initActivity();
   }, []);
 
   return (

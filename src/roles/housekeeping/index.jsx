@@ -5,26 +5,29 @@ import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import { TabBar } from '../../ui/shared.jsx';
 import { I } from '../../ui/icons.jsx';
 
-import HousekeepingTasks    from './Tasks.jsx';
-import HousekeepingDetail   from './Detail.jsx';
-import HousekeepingEvidence from './Evidence.jsx';
-import HousekeepingReport   from './Report.jsx';
-import HousekeepingShift    from './Shift.jsx';
-import RoleMe               from '../../ui/RoleMe.jsx';
-import AreaChat             from '../../ui/AreaChat.jsx';
-import { useChatUnread }    from '../../store/chat.js';
-import { useCurrentUser }   from '../../store/auth.js';
+import HousekeepingTasks  from './Tasks.jsx';
+import HousekeepingDetail from './Detail.jsx';
+import HousekeepingReport from './Report.jsx';
+import HousekeepingShift  from './Shift.jsx';
+import RoleMe             from '../../ui/RoleMe.jsx';
+import AreaChat           from '../../ui/AreaChat.jsx';
+import Notifications      from '../../ui/Notifications.jsx';
+import { useChatUnread }  from '../../store/chat.js';
+import { useActivityUnread } from '../../store/activity.js';
+import { useCurrentUser } from '../../store/auth.js';
 
 function HousekeepingShell() {
   const { pathname } = useLocation();
-  const user   = useCurrentUser();
-  const unread = useChatUnread(user?.roleId);
+  const user      = useCurrentUser();
+  const chatUnread = useChatUnread(user?.roleId);
+  const actUnread  = useActivityUnread(user?.roleId);
+  const unread = chatUnread + actUnread;
 
   const hideTabs =
-    pathname.includes('/task/')     ||
-    pathname.includes('/evidence/') ||
-    pathname.includes('/report')    ||
-    pathname.includes('/chat');
+    pathname.includes('/task/')         ||
+    pathname.includes('/report')        ||
+    pathname.includes('/chat')          ||
+    pathname.includes('/notifications');
 
   const tabs = [
     { id: 'tasks', label: 'Tareas', icon: I.list,  to: '/housekeeping' },
@@ -47,13 +50,13 @@ export default function HousekeepingRoutes() {
   return (
     <Routes>
       <Route element={<HousekeepingShell />}>
-        <Route index               element={<HousekeepingTasks />} />
-        <Route path="task/:id"     element={<HousekeepingDetail />} />
-        <Route path="evidence/:id" element={<HousekeepingEvidence />} />
-        <Route path="report"       element={<HousekeepingReport />} />
-        <Route path="shift"        element={<HousekeepingShift />} />
-        <Route path="chat"         element={<AreaChat role="housekeeping" />} />
-        <Route path="me"           element={<RoleMe />} />
+        <Route index                 element={<HousekeepingTasks />} />
+        <Route path="task/:id"       element={<HousekeepingDetail />} />
+        <Route path="report"         element={<HousekeepingReport />} />
+        <Route path="shift"          element={<HousekeepingShift />} />
+        <Route path="chat"           element={<AreaChat role="housekeeping" />} />
+        <Route path="notifications"  element={<Notifications />} />
+        <Route path="me"             element={<RoleMe />} />
       </Route>
     </Routes>
   );

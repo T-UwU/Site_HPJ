@@ -12,11 +12,15 @@ import {
 } from '../../ui/shared.jsx';
 import { I } from '../../ui/icons.jsx';
 import { useTickets, useActions } from '../../store/data.js';
+import { useActivityUnread } from '../../store/activity.js';
+import { useCurrentUser } from '../../store/auth.js';
 
 export default function MaintenanceTickets() {
-  const navigate = useNavigate();
-  const tickets = useTickets();
+  const navigate  = useNavigate();
+  const tickets   = useTickets();
   const { addTicket } = useActions();
+  const user      = useCurrentUser();
+  const actUnread = useActivityUnread(user?.roleId);
 
   const active = tickets.filter((t) => t.status !== 'cerrado');
   const urgent = active.filter((t) =>
@@ -44,7 +48,7 @@ export default function MaintenanceTickets() {
         subtitle={`${active.length} abiertos · ${highPriority} alta prioridad`}
         trailing={<>
           <IconBtn icon={I.filter}/>
-          <IconBtn icon={I.bell} badge="2"/>
+          <IconBtn icon={I.bell} badge={actUnread || undefined} onClick={() => navigate('/maintenance/notifications')}/>
         </>}
       />
       <Body style={{ paddingBottom: 80 }}>
