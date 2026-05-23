@@ -35,13 +35,16 @@ const AREA_COLOR = {
 
 const AREA_ORDER = ['reception', 'housekeeping', 'maintenance', 'purchasing'];
 
+const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DAY_HEADERS = ['L','M','M','J','V','S','D'];
+
 // ── Lista de eventos ───────────────────────────────────────
 export function EventsList({ role }) {
-  const navigate = useNavigate();
-  const events   = useEvents();
-  const user     = useCurrentUser();
+  const navigate  = useNavigate();
+  const events    = useEvents();
+  const [view, setView] = useState('list'); // 'list' | 'cal'
 
-  const sorted = [...events].sort((a, b) => a.date.localeCompare(b.date));
+  const sorted   = [...events].sort((a, b) => a.date.localeCompare(b.date));
   const upcoming = sorted.filter((e) => e.status !== 'cerrado');
   const past     = sorted.filter((e) => e.status === 'cerrado');
 
@@ -52,53 +55,168 @@ export function EventsList({ role }) {
         eyebrow="Próximos eventos"
         title="Calendario"
         trailing={
-          role === 'sales'
-            ? <IconBtn icon={I.plus} onClick={() => navigate(`/${role}/events/new`)}/>
-            : null
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            {/* Toggle lista / mes */}
+            <div style={{
+              display: 'flex', borderRadius: 8, overflow: 'hidden',
+              border: '1px solid var(--line)', background: 'var(--card-2)',
+            }}>
+              <ViewBtn icon={I.list} active={view === 'list'} onClick={() => setView('list')}/>
+              <ViewBtn icon={I.cal}  active={view === 'cal'}  onClick={() => setView('cal')}/>
+            </div>
+            {role === 'sales' && (
+              <IconBtn icon={I.plus} onClick={() => navigate(`/${role}/events/new`)}/>
+            )}
+          </div>
         }
       />
       <Body style={{ paddingBottom: 24 }}>
-        {upcoming.length === 0 && (
-          <div style={{ padding: 32, textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>
-            Sin eventos programados.
-          </div>
-        )}
-
-        {upcoming.length > 0 && (
+        {view === 'cal' ? (
+          <MonthView events={sorted} role={role} navigate={navigate}/>
+        ) : (
           <>
-            <Eyebrow>Programados</Eyebrow>
-            <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {upcoming.map((ev) => (
-                <EventCard
-                  key={ev.id}
-                  event={ev}
-                  myRole={role}
-                  onClick={() => navigate(`/${role}/events/${ev.id}`)}
-                />
-              ))}
-            </div>
-          </>
-        )}
-
-        {past.length > 0 && (
-          <>
-            <Eyebrow>Cerrados</Eyebrow>
-            <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {past.map((ev) => (
-                <EventCard
-                  key={ev.id}
-                  event={ev}
-                  myRole={role}
-                  onClick={() => navigate(`/${role}/events/${ev.id}`)}
-                />
-              ))}
-            </div>
+            {upcoming.length === 0 && (
+              <div style={{ padding: 32, textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>
+                Sin eventos programados.
+              </div>
+            )}
+            {upcoming.length > 0 && (
+              <>
+                <Eyebrow>Programados</Eyebrow>
+                <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {upcoming.map((ev) => (
+                    <EventCard key={ev.id} event={ev} myRole={role}
+                      onClick={() => navigate(`/${role}/events/${ev.id}`)}/>
+                  ))}
+                </div>
+              </>
+            )}
+            {past.length > 0 && (
+              <>
+                <Eyebrow>Cerrados</Eyebrow>
+                <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {past.map((ev) => (
+                    <EventCard key={ev.id} event={ev} myRole={role}
+                      onClick={() => navigate(`/${role}/events/${ev.id}`)}/>
+                  ))}
+                </div>
+              </>
+            )}
           </>
         )}
       </Body>
     </PhoneScreen>
   );
 }
+
+// ── Vista de mes ───────────────────────────────────────────
+function MonthView({ events, role, navigate }) {
+  const now   = new Date();
+  const [year,  setYear]  = useState(now.getFullYear());
+  const [month, setMonth] = useState(now.getMonth());
+
+  const prevMonth = () => { if (month === 0) { setMonth(11); setYear((y) => y - 1); } else setMonth((m) => m - 1); };
+  const nextMonth = () => { if (month === 11) { setMonth(0); setYear((y) => y + 1); } else setMonth((m) => m + 1); };
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  // offset lunes-primero (0=lun … 6=dom)
+  const offset = (new Date(year, month, 1).getDay() + 6) % 7;
+
+  const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
+  const byDay = {};
+  for (const ev of events) {
+    if (!ev.date.startsWith(monthStr)) continue;
+    const d = parseInt(ev.date.split('-')[2], 10);
+    if (!byDay[d]) byDay[d] = [];
+    byDay[d].push(ev);
+  }
+
+  const cells = [...Array(offset).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
+  const isToday = (d) => d === now.getDate() && month === now.getMonth() && year === now.getFullYear();
+
+  return (
+    <div style={{ padding: '0 12px 16px' }}>
+      {/* Navegación de mes */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 4px 14px' }}>
+        <button onClick={prevMonth} style={navBtnStyle}>{I.chevL}</button>
+        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>
+          {MONTH_NAMES[month]} {year}
+        </span>
+        <button onClick={nextMonth} style={navBtnStyle}>{I.chevR}</button>
+      </div>
+
+      {/* Cabecera días */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
+        {DAY_HEADERS.map((d, i) => (
+          <div key={i} style={{
+            textAlign: 'center', fontSize: 10, fontWeight: 600,
+            color: 'var(--muted)', letterSpacing: '0.05em', paddingBottom: 4,
+          }}>{d}</div>
+        ))}
+      </div>
+
+      {/* Celdas */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
+        {cells.map((day, i) => {
+          if (!day) return <div key={i}/>;
+          const evs = byDay[day] || [];
+          const today = isToday(day);
+          return (
+            <div key={i} style={{
+              minHeight: 54, borderRadius: 8, padding: '4px 3px',
+              background: evs.length ? 'var(--forest-soft)' : today ? 'var(--card-2)' : 'transparent',
+              border: `1px solid ${today ? 'var(--forest)' : 'transparent'}`,
+            }}>
+              <div style={{
+                textAlign: 'center', fontSize: 11, marginBottom: 2,
+                fontWeight: today ? 700 : 400,
+                color: today ? 'var(--forest-deep)' : 'var(--ink)',
+              }}>{day}</div>
+              {evs.slice(0, 2).map((ev) => (
+                <div key={ev.id}
+                  onClick={() => navigate(`/${role}/events/${ev.id}`)}
+                  style={{
+                    fontSize: 9, lineHeight: 1.25, padding: '1px 3px', borderRadius: 3,
+                    marginBottom: 1, cursor: 'pointer', overflow: 'hidden',
+                    textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    background: ev.status === 'confirmado' ? 'var(--forest)' : 'var(--brass-soft)',
+                    color: ev.status === 'confirmado' ? 'var(--bg)' : 'var(--brass-deep)',
+                  }}
+                  title={ev.name}
+                >
+                  {ev.pax}p {ev.name.split('·')[0].trim()}
+                </div>
+              ))}
+              {evs.length > 2 && (
+                <div style={{ fontSize: 9, color: 'var(--muted)', textAlign: 'center' }}>
+                  +{evs.length - 2}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Botón de toggle vista ──────────────────────────────────
+function ViewBtn({ icon, active, onClick }) {
+  return (
+    <button onClick={onClick} style={{
+      padding: '5px 8px', border: 'none', cursor: 'pointer', display: 'flex',
+      alignItems: 'center', justifyContent: 'center',
+      background: active ? 'var(--forest)' : 'transparent',
+      color: active ? 'var(--bg)' : 'var(--muted)',
+    }}>{icon}</button>
+  );
+}
+
+const navBtnStyle = {
+  background: 'none', border: 'none', cursor: 'pointer',
+  color: 'var(--ink)', padding: '4px 8px', borderRadius: 6,
+  display: 'flex', alignItems: 'center',
+};
 
 // ── Detalle de un evento ───────────────────────────────────
 export function EventDetail({ role }) {
