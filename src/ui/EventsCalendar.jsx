@@ -163,7 +163,7 @@ function MonthView({ events, role, navigate }) {
           const today = isToday(day);
           return (
             <div key={i} style={{
-              minHeight: 54, borderRadius: 8, padding: '4px 3px',
+              borderRadius: 8, padding: '4px 3px',
               background: evs.length ? 'var(--forest-soft)' : today ? 'var(--card-2)' : 'transparent',
               border: `1px solid ${today ? 'var(--forest)' : 'transparent'}`,
             }}>
@@ -177,12 +177,10 @@ function MonthView({ events, role, navigate }) {
                   onClick={() => navigate(`/${role}/events/${ev.id}`)}
                   style={{
                     fontSize: 9, lineHeight: 1.25, padding: '1px 3px', borderRadius: 3,
-                    marginBottom: 1, cursor: 'pointer', overflow: 'hidden',
-                    textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    marginBottom: 1, cursor: 'pointer', wordBreak: 'break-word',
                     background: ev.status === 'confirmado' ? 'var(--forest)' : 'var(--brass-soft)',
                     color: ev.status === 'confirmado' ? 'var(--bg)' : 'var(--brass-deep)',
                   }}
-                  title={ev.name}
                 >
                   {ev.pax}p {ev.name.split('·')[0].trim()}
                 </div>
