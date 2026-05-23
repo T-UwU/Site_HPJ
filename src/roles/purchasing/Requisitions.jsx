@@ -87,44 +87,38 @@ export default function PurchasingRequisitions() {
           </>
         )}
       </Body>
-      <FAB icon={I.plus} label="Nueva requisición" onClick={() => navigate('/purchasing/new')}/>
+      <FAB icon={I.plus} label="Nueva" onClick={() => navigate('/purchasing/new')}/>
     </PhoneScreen>
   );
 }
 
 function ReqCard({ req, onAdvance }) {
-  const date = new Date(req.updatedAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
   const isSurtido = req.status === 'surtido';
   return (
     <Card style={{ padding: '10px 12px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ color: req.status === 'en-camino' ? 'var(--info)' : 'var(--brass-deep)' }}>
-          {I.pkg}
-        </span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 13, fontWeight: 500 }}>{req.item}</div>
           <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>
-            ×{req.qty} · {AREA_LABEL[req.area] || req.area} · {req.requestedBy}
+            ×{req.qty} · {AREA_LABEL[req.area] || req.area}
           </div>
-          <div style={{ fontSize: 10, color: 'var(--muted-2)', marginTop: 1 }}>{date}</div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5 }}>
-          <Pill kind={STATUS_KIND[req.status]} style={{ height: 18, fontSize: 9 }}>
+        {!isSurtido && onAdvance ? (
+          <button
+            onClick={onAdvance}
+            style={{
+              fontSize: 11, padding: '5px 12px', borderRadius: 8,
+              background: 'var(--forest)', color: 'var(--bg)', border: 'none',
+              cursor: 'pointer', fontFamily: 'inherit', fontWeight: 500, flexShrink: 0,
+            }}
+          >
+            {req.status === 'pedido' ? 'En camino →' : 'Surtir →'}
+          </button>
+        ) : (
+          <Pill kind={STATUS_KIND[req.status]} style={{ height: 20, fontSize: 10, flexShrink: 0 }}>
             {STATUS_LABEL[req.status]}
           </Pill>
-          {!isSurtido && onAdvance && (
-            <button
-              onClick={onAdvance}
-              style={{
-                fontSize: 10, padding: '3px 8px', borderRadius: 6,
-                background: 'var(--forest)', color: 'var(--bg)', border: 'none',
-                cursor: 'pointer', fontFamily: 'inherit',
-              }}
-            >
-              {req.status === 'pedido' ? 'En camino →' : 'Surtir →'}
-            </button>
-          )}
-        </div>
+        )}
       </div>
     </Card>
   );
