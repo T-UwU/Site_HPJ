@@ -41,7 +41,7 @@ export default function ReceptionHome() {
         </>}
       />
       <Body style={{ paddingBottom: 80 }}>
-        <Eyebrow right="ver todo">Pulso del día</Eyebrow>
+        <Eyebrow right={<span style={{ cursor: 'pointer' }} onClick={() => navigate('/reception/arrivals')}>ver llegadas →</span>}>Pulso del día</Eyebrow>
         <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
           <Card
             style={{ padding: 14, display: 'flex', alignItems: 'center', gap: 12 }}
