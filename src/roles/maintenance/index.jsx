@@ -5,30 +5,34 @@ import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import { TabBar } from '../../ui/shared.jsx';
 import { I } from '../../ui/icons.jsx';
 
-import MaintenanceTickets from './Tickets.jsx';
-import MaintenanceDetail  from './Detail.jsx';
-import MaintenanceHistory from './History.jsx';
-import RoleMe             from '../../ui/RoleMe.jsx';
-import AreaChat           from '../../ui/AreaChat.jsx';
-import Notifications      from '../../ui/Notifications.jsx';
-import { useChatUnread }  from '../../store/chat.js';
-import { useActivityUnread } from '../../store/activity.js';
-import { useCurrentUser } from '../../store/auth.js';
+import MaintenanceTickets      from './Tickets.jsx';
+import MaintenanceDetail       from './Detail.jsx';
+import MaintenanceHistory      from './History.jsx';
+import MaintenanceRequisitions from './Requisitions.jsx';
+import RoleMe                  from '../../ui/RoleMe.jsx';
+import AreaChat                from '../../ui/AreaChat.jsx';
+import Notifications           from '../../ui/Notifications.jsx';
+import { EventsList, EventDetail } from '../../ui/EventsCalendar.jsx';
+import { useActivityUnread }   from '../../store/activity.js';
+import { useCurrentUser }      from '../../store/auth.js';
 
 function MaintenanceShell() {
   const { pathname } = useLocation();
   const user      = useCurrentUser();
-  const chatUnread = useChatUnread(user?.roleId);
-  const actUnread  = useActivityUnread(user?.roleId);
-  const unread = chatUnread + actUnread;
+  const actUnread = useActivityUnread(user?.roleId);
 
-  const hideTabs = pathname.includes('/ticket/') || pathname.includes('/chat') || pathname.includes('/notifications');
+  const hideTabs =
+    pathname.includes('/ticket/')       ||
+    pathname.includes('/chat')          ||
+    pathname.includes('/notifications') ||
+    pathname.includes('/events/');
 
   const tabs = [
-    { id: 'open', label: 'Abiertos', icon: I.wrench, to: '/maintenance' },
-    { id: 'done', label: 'Hist.',    icon: I.list,   to: '/maintenance/history' },
-    { id: 'chat', label: 'Chat',     icon: I.msg,    to: '/maintenance/chat', badge: unread || undefined },
-    { id: 'me',   label: 'Yo',       icon: I.user,   to: '/maintenance/me' },
+    { id: 'open',  label: 'Abiertos', icon: I.wrench, to: '/maintenance' },
+    { id: 'reqs',  label: 'Pedidos',  icon: I.pkg,    to: '/maintenance/requisitions' },
+    { id: 'events',label: 'Eventos',  icon: I.cal,    to: '/maintenance/events' },
+    { id: 'me',    label: 'Yo',       icon: I.user,   to: '/maintenance/me',
+      badge: actUnread || undefined },
   ];
 
   return (
@@ -45,12 +49,15 @@ export default function MaintenanceRoutes() {
   return (
     <Routes>
       <Route element={<MaintenanceShell />}>
-        <Route index             element={<MaintenanceTickets />} />
-        <Route path="ticket/:id"    element={<MaintenanceDetail />} />
-        <Route path="history"       element={<MaintenanceHistory />} />
-        <Route path="chat"          element={<AreaChat role="maintenance" />} />
-        <Route path="notifications" element={<Notifications />} />
-        <Route path="me"            element={<RoleMe />} />
+        <Route index                  element={<MaintenanceTickets />} />
+        <Route path="ticket/:id"      element={<MaintenanceDetail />} />
+        <Route path="history"         element={<MaintenanceHistory />} />
+        <Route path="requisitions"    element={<MaintenanceRequisitions />} />
+        <Route path="events"          element={<EventsList role="maintenance" />} />
+        <Route path="events/:id"      element={<EventDetail role="maintenance" />} />
+        <Route path="chat"            element={<AreaChat role="maintenance" />} />
+        <Route path="notifications"   element={<Notifications />} />
+        <Route path="me"              element={<RoleMe />} />
       </Route>
     </Routes>
   );

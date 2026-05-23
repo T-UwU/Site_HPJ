@@ -12,28 +12,28 @@ import HousekeepingShift  from './Shift.jsx';
 import RoleMe             from '../../ui/RoleMe.jsx';
 import AreaChat           from '../../ui/AreaChat.jsx';
 import Notifications      from '../../ui/Notifications.jsx';
-import { useChatUnread }  from '../../store/chat.js';
+import { EventsList, EventDetail } from '../../ui/EventsCalendar.jsx';
 import { useActivityUnread } from '../../store/activity.js';
 import { useCurrentUser } from '../../store/auth.js';
 
 function HousekeepingShell() {
   const { pathname } = useLocation();
   const user      = useCurrentUser();
-  const chatUnread = useChatUnread(user?.roleId);
-  const actUnread  = useActivityUnread(user?.roleId);
-  const unread = chatUnread + actUnread;
+  const actUnread = useActivityUnread(user?.roleId);
 
   const hideTabs =
     pathname.includes('/task/')         ||
     pathname.includes('/report')        ||
     pathname.includes('/chat')          ||
-    pathname.includes('/notifications');
+    pathname.includes('/notifications') ||
+    pathname.includes('/events/');
 
   const tabs = [
-    { id: 'tasks', label: 'Tareas', icon: I.list,  to: '/housekeeping' },
-    { id: 'shift', label: 'Turno',  icon: I.clock, to: '/housekeeping/shift' },
-    { id: 'chat',  label: 'Chat',   icon: I.msg,   to: '/housekeeping/chat', badge: unread || undefined },
-    { id: 'me',    label: 'Yo',     icon: I.user,  to: '/housekeeping/me' },
+    { id: 'tasks',  label: 'Tareas',  icon: I.list,  to: '/housekeeping' },
+    { id: 'shift',  label: 'Turno',   icon: I.clock, to: '/housekeeping/shift' },
+    { id: 'events', label: 'Eventos', icon: I.cal,   to: '/housekeeping/events' },
+    { id: 'me',     label: 'Yo',      icon: I.user,  to: '/housekeeping/me',
+      badge: actUnread || undefined },
   ];
 
   return (
@@ -54,6 +54,8 @@ export default function HousekeepingRoutes() {
         <Route path="task/:id"       element={<HousekeepingDetail />} />
         <Route path="report"         element={<HousekeepingReport />} />
         <Route path="shift"          element={<HousekeepingShift />} />
+        <Route path="events"         element={<EventsList role="housekeeping" />} />
+        <Route path="events/:id"     element={<EventDetail role="housekeeping" />} />
         <Route path="chat"           element={<AreaChat role="housekeeping" />} />
         <Route path="notifications"  element={<Notifications />} />
         <Route path="me"             element={<RoleMe />} />

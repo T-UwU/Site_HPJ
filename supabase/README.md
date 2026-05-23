@@ -18,7 +18,12 @@ Esta guía deja el backend listo desde cero. Calcula 15–20 minutos la primera 
 2. Click en **New query**.
 3. Pega el contenido completo de `supabase/schema.sql` y dale **Run**
    (esquina inferior derecha).
-4. Repite con `supabase/seed.sql`.
+4. Repite en orden con cada archivo:
+   - `supabase/seed.sql` — datos iniciales (rooms, tickets, tasks…)
+   - `supabase/add-events.sql` — tabla `events` (Ordenes de Evento)
+   - `supabase/add-comments.sql` — tabla `comments` (comentarios contextuales)
+   - `supabase/add-purchasing.sql` — tabla `requisitions` (rol Compras)
+   - `supabase/migrate-roles.sql` — actualiza constraint de roles a los 5 activos
 
 Si todo salió bien, en **Table Editor** verás las tablas `rooms`, `tickets`,
 `tasks`, etc. con sus datos seed.
@@ -38,7 +43,7 @@ Si todo salió bien, en **Table Editor** verás las tablas `rooms`, `tickets`,
    cp .env.example .env
    ```
 
-## 4 · Crear los 7 usuarios demo
+## 4 · Crear los 5 usuarios demo
 
 Necesitamos un usuario en `auth.users` por cada rol (recepción, limpieza, etc.).
 Hay dos formas:
@@ -62,17 +67,15 @@ Hay dos formas:
 
    Output esperado:
    ```
-   🏨 Creando 7 usuarios demo en https://tuproyecto.supabase.co
+   Hotel Palacio Julio · Creando 5 usuarios demo
 
      recepcion@palaciojulio.test            → ✓ reception
      limpieza@palaciojulio.test             → ✓ housekeeping
-     cocina@palaciojulio.test               → ✓ kitchen
      ventas@palaciojulio.test               → ✓ sales
      mantenimiento@palaciojulio.test        → ✓ maintenance
-     gerencia@palaciojulio.test             → ✓ management
-     concierge@palaciojulio.test            → ✓ concierge
+     compras@palaciojulio.test              → ✓ purchasing
 
-   ✓ Listo. 7 creados · 0 ya existían.
+   Listo. 5 creados · 0 ya existían.
    ```
 
 ### Opción B · A mano desde el dashboard
@@ -89,8 +92,9 @@ puedes crear uno por uno. Por cada usuario:
    ```
 5. **Create user**. El trigger crea su profile automáticamente.
 
-Repite con los demás 6 usuarios (revisa `supabase/seed-users.js` para
-los nombres y role_ids).
+Repite con los demás 4 usuarios (revisa `supabase/seed-users.js` para
+los nombres y role_ids). Los 5 roles activos son:
+`reception`, `housekeeping`, `sales`, `maintenance`, `purchasing`.
 
 ## 5 · Probar
 
@@ -112,7 +116,7 @@ login, abajo, hay un link discreto **"Modo demo · sin servidor →"**.
 
 ## 6 · Verificar que todo está bien
 
-En **Table Editor · profiles** deberías ver 7 rows (una por usuario)
+En **Table Editor · profiles** deberías ver 5 rows (una por usuario)
 con su role_id correcto. Si solo ves auth.users sin profile, el trigger
 falló — vuelve a correr `schema.sql` y crea los users de nuevo.
 

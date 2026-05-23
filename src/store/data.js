@@ -1,8 +1,7 @@
 // src/store/data.js — estado operativo del hotel.
-// Acciones para crear/mutar/cerrar tickets, peticiones, tareas, etc.
 //
 // Patrón mínimo: cada "tabla" tiene { add, update, remove }.
-// Las pantallas leen con useData(s => s.requests) y mutan con useData(s => s.actions.addRequest).
+// Las pantallas leen con useData(s => s.tickets) y mutan con useActions().
 //
 // Nota: persistido en localStorage. Si cambias el shape del seed, sube `version`
 // para que se borre el cache viejo en los clientes.
@@ -11,15 +10,15 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { seed } from './seed';
 
+const upsert = (list, id, patch) =>
+  list.map((it) => (it.id === id ? { ...it, ...patch } : it));
+
+// Función auxiliar para registrar actividad sin importación circular
 const logActivity = (role, actor, action, room, refId) => {
-  // Lazy import to avoid circular dep at module load time
   import('./activity.js').then(({ useActivity }) => {
     useActivity.getState().log(role, actor, action, room, refId);
   });
 };
-
-const upsert = (list, id, patch) =>
-  list.map((it) => (it.id === id ? { ...it, ...patch } : it));
 
 export const useData = create(
   persist(
@@ -27,20 +26,12 @@ export const useData = create(
       ...seed,
 
       actions: {
-        // ── Peticiones (concierge) ────────────────────────
-        addRequest: (req) =>
-          set((s) => ({ requests: [{ id: `C-${Date.now()}`, ...req }, ...s.requests] })),
-        updateRequest: (id, patch) =>
-          set((s) => ({ requests: upsert(s.requests, id, patch) })),
-        assignRequest: (id, assignedTo) =>
-          set((s) => ({ requests: upsert(s.requests, id, { assignedTo, status: 'en-progreso' }) })),
-        completeRequest: (id) =>
-          set((s) => ({ requests: upsert(s.requests, id, { status: 'completada' }) })),
-
         // ── Tickets (mantenimiento) ───────────────────────
         addTicket: (t) => {
           const id = `M-${Date.now()}`;
-          set((s) => ({ tickets: [{ id, ...t }, ...s.tickets] }));
+          // Los tickets nuevos nacen con acuse pendiente
+          const ticket = { id, acks: { maintenance: null }, ...t };
+          set((s) => ({ tickets: [ticket, ...s.tickets] }));
           logActivity(
             t.reportedBy || 'maintenance',
             t.reporter   || '—',
@@ -57,6 +48,16 @@ export const useData = create(
           set((s) => ({ tickets: upsert(s.tickets, id, { status: 'cerrado' }) }));
           logActivity('maintenance', '—', `Ticket cerrado: ${ticket?.desc || id}`, ticket?.room, id);
         },
+        // Acuse de recibido en ticket — sella timestamp por rol
+        ackTicket: (id, role) => {
+          const at = new Date().toISOString();
+          set((s) => ({
+            tickets: s.tickets.map((t) => {
+              if (t.id !== id) return t;
+              return { ...t, acks: { ...(t.acks || {}), [role]: at } };
+            }),
+          }));
+        },
 
         // ── Tareas (limpieza) ─────────────────────────────
         startTask: (id, assignedTo) =>
@@ -66,7 +67,8 @@ export const useData = create(
         completeTask: (id) => {
           const task = get().tasks.find((t) => t.id === id);
           set((s) => ({ tasks: upsert(s.tasks, id, { status: 'completada', progress: 100 }) }));
-          logActivity('housekeeping', task?.assignedTo || 'Limpieza', `Hab lista: ${task?.typeLabel || task?.type || 'Tarea'}`, task?.room, id);
+          logActivity('housekeeping', task?.assignedTo || 'Limpieza',
+            `Hab lista: ${task?.typeLabel || task?.type || 'Tarea'}`, task?.room, id);
         },
 
         // ── Habitaciones ──────────────────────────────────
@@ -76,57 +78,19 @@ export const useData = create(
         // ── Llegadas (Recepción) ──────────────────────────
         markArrived: (id) => {
           const arrival = get().arrivals.find((a) => a.id === id);
-          set((s) => ({ arrivals: upsert(s.arrivals, id, { done: true, statusLabel: 'En habitación', status: 'ok' }) }));
+          set((s) => ({
+            arrivals: upsert(s.arrivals, id, { done: true, statusLabel: 'En habitación', status: 'ok' }),
+          }));
           logActivity('reception', 'Recepción', `Check-in: ${arrival?.guest || '—'}`, arrival?.room, id);
         },
 
-        // ── Cocina ────────────────────────────────────────
-        startOrder: (id) =>
-          set((s) => ({ orders: upsert(s.orders, id, { status: 'preparing' }) })),
-        markOrderReady: (id) =>
-          set((s) => ({ orders: upsert(s.orders, id, { status: 'ready' }) })),
-        sendOrder: (id) =>
-          set((s) => ({ orders: upsert(s.orders, id, { status: 'sent' }) })),
-        // Avanza el estado de un item (pending → cooking → ready)
-        cycleOrderItem: (orderId, itemIndex) =>
-          set((s) => ({
-            orders: s.orders.map((o) => {
-              if (o.id !== orderId) return o;
-              const items = (o.items || []).map((it, i) => {
-                if (i !== itemIndex) return it;
-                const next = it.status === 'pending' ? 'cooking'
-                  : it.status === 'cooking' ? 'ready'
-                  : 'pending';
-                return { ...it, status: next };
-              });
-              return { ...o, items };
-            }),
-          })),
-        // Acepta la alerta entrante y la convierte en orden real
-        acceptPendingOrder: () =>
-          set((s) => {
-            if (!s.pendingOrderAlert) return {};
-            const a = s.pendingOrderAlert;
-            const newOrder = {
-              id: `O-${a.room}-${Date.now()}`,
-              room: a.room, guest: a.guest,
-              type: a.summary, mealKind: 'desayuno',
-              time: a.dates.split(' · ')[1] || '07:30',
-              timeLabel: a.dates,
-              status: 'queued',
-              note: a.allergyText,
-              allergen: !!a.allergyText,
-              items: [],
-            };
-            return { orders: [newOrder, ...s.orders], pendingOrderAlert: null };
-          }),
-
-        // ── Ventas ────────────────────────────────────────
+        // ── Ventas / Reservas ─────────────────────────────
         addReservation: (r) => {
           const id = `R-${Date.now()}`;
           set((s) => ({ reservations: [{ id, ...r }, ...s.reservations] }));
           const origin = r.channel?.includes('Recepción') ? 'reception' : 'sales';
-          logActivity(origin, r.channel || 'Ventas', `Reserva: ${r.guestName || '—'} · ${r.stay || ''}`, r.room, id);
+          logActivity(origin, r.channel || 'Ventas',
+            `Reserva: ${r.guestName || '—'} · ${r.stay || ''}`, r.room, id);
         },
         confirmReservation: (id) => {
           const res = get().reservations.find((r) => r.id === id);
@@ -134,15 +98,85 @@ export const useData = create(
           logActivity('sales', 'Ventas', `Reserva confirmada: ${res?.guestName || id}`, res?.room, id);
         },
 
+        // ── Ordenes de Evento (entidad central) ───────────
+        addEvent: (ev) => {
+          const id = `EVT-${Date.now()}`;
+          const evento = {
+            id,
+            acks: { housekeeping: null, maintenance: null, reception: null, purchasing: null },
+            ...ev,
+          };
+          set((s) => ({ events: [evento, ...s.events] }));
+          logActivity('sales', ev.createdBy || 'Ventas',
+            `Nuevo evento: ${ev.name || '—'} · ${ev.pax || 0} pax`, ev.salon, id);
+        },
+        updateEvent: (id, patch) =>
+          set((s) => ({ events: upsert(s.events, id, patch) })),
+        // Acuse de recibido — sella timestamp y registra actividad destacada
+        confirmEventAck: (eventId, role) => {
+          const at = new Date().toISOString();
+          const ev = get().events.find((e) => e.id === eventId);
+          set((s) => ({
+            events: s.events.map((e) => {
+              if (e.id !== eventId) return e;
+              return { ...e, acks: { ...e.acks, [role]: at } };
+            }),
+          }));
+          logActivity(role, '—', `Acuse recibido: ${ev?.name || eventId}`, ev?.salon, eventId);
+        },
+        // Cambio de comensales — dato crítico, registra actividad destacada
+        changeEventPax: (eventId, newPax) => {
+          const ev = get().events.find((e) => e.id === eventId);
+          const oldPax = ev?.pax ?? '?';
+          set((s) => ({ events: upsert(s.events, eventId, { pax: newPax }) }));
+          logActivity('sales', 'Ventas',
+            `⚠ Cambio de pax: ${oldPax} → ${newPax} · ${ev?.name || eventId}`,
+            ev?.salon, eventId);
+        },
+
+        // ── Comentarios contextuales ──────────────────────
+        addComment: ({ entityType, entityId, author, role, body }) =>
+          set((s) => ({
+            comments: [
+              ...s.comments,
+              { id: `CMT-${Date.now()}`, entityType, entityId, author, role, body, at: new Date().toISOString() },
+            ],
+          })),
+
+        // ── Compras — Requisiciones ───────────────────────
+        addRequisition: (r) => {
+          const id = `REQ-${Date.now()}`;
+          const now = new Date().toISOString();
+          set((s) => ({
+            requisitions: [{ id, status: 'pedido', createdAt: now, updatedAt: now, ...r }, ...s.requisitions],
+          }));
+          logActivity(r.area || 'purchasing', r.requestedBy || '—',
+            `Requisición: ${r.item || '—'} (×${r.qty || 1})`, null, id);
+        },
+        updateRequisitionStatus: (id, status) => {
+          const now = new Date().toISOString();
+          set((s) => ({ requisitions: upsert(s.requisitions, id, { status, updatedAt: now }) }));
+          const req = get().requisitions.find((r) => r.id === id);
+          logActivity('purchasing', 'Compras',
+            `Requisición ${status}: ${req?.item || id}`, null, id);
+        },
+
+        // ── Peticiones Concierge (TODO: sin rol activo) ───
+        addRequest: (req) =>
+          set((s) => ({ requests: [{ id: `C-${Date.now()}`, ...req }, ...s.requests] })),
+
+        // ── Cocina (TODO: sin rol activo) ─────────────────
+        startOrder: () => {},
+        markOrderReady: () => {},
+
         // ── Reset total (útil en dev) ─────────────────────
         resetAll: () => set({ ...seed }),
       },
     }),
     {
       name: 'hpj.data',
-      version: 6, // bump cuando cambies la forma del seed
+      version: 8, // subido a 8: nuevo shape con events, comments, requisitions, acks en tickets
       partialize: (s) => {
-        // No persistimos `actions` (son funciones).
         const { actions, ...rest } = s;
         return rest;
       },
@@ -150,14 +184,21 @@ export const useData = create(
   )
 );
 
-// Atajos de selección
+// ── Selectores ────────────────────────────────────────────────
 export const useRooms        = () => useData((s) => s.rooms);
-export const useRequests     = () => useData((s) => s.requests);
 export const useTickets      = () => useData((s) => s.tickets);
 export const useTasks        = () => useData((s) => s.tasks);
-export const useOrders       = () => useData((s) => s.orders);
 export const useReservations = () => useData((s) => s.reservations);
 export const useArrivals     = () => useData((s) => s.arrivals);
 export const useCustomers    = () => useData((s) => s.customers);
 export const useRoomTypes    = () => useData((s) => s.roomTypes);
+export const useEvents       = () => useData((s) => s.events);
+export const useRequisitions = () => useData((s) => s.requisitions);
+// TODO: activar cuando haya rol activo
+export const useRequests     = () => useData((s) => s.requests);
+export const useOrders       = () => useData((s) => s.orders);
 export const useActions      = () => useData((s) => s.actions);
+
+// Selector de comentarios filtrado por entidad
+export const useComments = (entityType, entityId) =>
+  useData((s) => s.comments.filter((c) => c.entityType === entityType && c.entityId === entityId));

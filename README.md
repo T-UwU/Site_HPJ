@@ -1,9 +1,9 @@
 # Hotel Palacio Julio · Sistema Operativo
 
 Vite + React + React Router + Zustand + **Supabase** (opcional).
-Sistema operativo de hotel con 7 roles coordinados (Recepción, Limpieza,
-Cocina, Ventas, Mantenimiento, Gerencia, Concierge), login real con email,
-y persistencia en localStorage como fallback.
+Sistema operativo de hotel con 5 roles coordinados (Recepción, Limpieza,
+Ventas, Mantenimiento, Compras), login real con email, y persistencia
+en localStorage como fallback.
 
 ---
 
@@ -24,9 +24,9 @@ Funcional 100%, sin necesidad de cuenta en ningún lado.
 
 Sigue las instrucciones de `supabase/README.md`. Resumen:
 
-1. Crea proyecto en Supabase, corre `supabase/schema.sql` + `supabase/seed.sql`
+1. Crea proyecto en Supabase, corre `schema.sql` → `seed.sql` → `add-events.sql` → `add-comments.sql` → `add-purchasing.sql` → `migrate-roles.sql`
 2. Copia `.env.example` a `.env` con tus credenciales
-3. `npm run seed:users` para crear los 7 usuarios demo
+3. `npm run seed:users` para crear los 5 usuarios demo
 4. `npm run dev` y login con `recepcion@palaciojulio.test` / `demo1234`
 
 Si las env vars no están, la app cae automáticamente a modo offline — útil
@@ -54,7 +54,11 @@ hpj/
 │   ├── README.md                 ← setup paso a paso
 │   ├── schema.sql                ← tablas + RLS + realtime + auth trigger
 │   ├── seed.sql                  ← datos iniciales
-│   └── seed-users.js             ← script Node para crear los 7 usuarios demo
+│   ├── add-events.sql            ← tabla events (Ordenes de Evento)
+│   ├── add-comments.sql          ← tabla comments (comentarios contextuales)
+│   ├── add-purchasing.sql        ← tabla requisitions (rol Compras)
+│   ├── migrate-roles.sql         ← actualiza constraint a 5 roles activos
+│   └── seed-users.js             ← script Node para crear los 5 usuarios demo
 └── src/
     ├── main.jsx                  ← entry
     ├── App.jsx                   ← router + initSession + splash
@@ -65,61 +69,51 @@ hpj/
     ├── store/
     │   ├── auth.js               ← Zustand: usuario + login dual mode
     │   ├── seed.js               ← datos iniciales en JS (modo offline)
-    │   └── data.js               ← Zustand: estado operativo
+    │   ├── data.js               ← Zustand: estado operativo
+    │   └── activity.js           ← actividad cross-area + realtime
     ├── ui/
     │   ├── icons.jsx
     │   ├── shared.jsx
     │   ├── RoleMe.jsx
-    │   └── PhoneShell.jsx
+    │   ├── PhoneShell.jsx
+    │   ├── EventsCalendar.jsx    ← lista + detalle de Ordenes de Evento
+    │   ├── CommentThread.jsx     ← comentarios contextuales (ticket/evento)
+    │   └── Notifications.jsx     ← feed de actividad cross-area
     ├── pages/
     │   └── Login.jsx             ← email/password + selector demo (dual)
     ├── routes/
     │   └── RequireAuth.jsx
-    └── roles/                    ← los 7 roles, todos migrados
-        ├── concierge/            ← MIGRADO COMPLETO
-        │   ├── index.jsx
-        │   ├── Requests.jsx
-        │   ├── Detail.jsx
-        │   └── Chat.jsx
-        ├── reception/            ← MIGRADO COMPLETO
-        │   ├── index.jsx
+    └── roles/                    ← 5 roles activos
+        ├── reception/
+        │   ├── index.jsx         ← tabs: Inicio, Llegadas, Habs., Eventos, Yo
         │   ├── Home.jsx
         │   ├── Arrivals.jsx
         │   ├── CheckIn.jsx
         │   ├── Rooms.jsx
         │   ├── GuestDetail.jsx
-        │   └── Chat.jsx
-        ├── maintenance/          ← MIGRADO COMPLETO
-        │   ├── index.jsx
-        │   ├── Tickets.jsx
-        │   ├── Detail.jsx
-        │   └── History.jsx
-        ├── housekeeping/         ← MIGRADO COMPLETO
-        │   ├── index.jsx
+        │   └── NewReservation.jsx← recepción también puede crear reservas
+        ├── housekeeping/
+        │   ├── index.jsx         ← tabs: Tareas, Turno, Eventos, Yo
         │   ├── Tasks.jsx
         │   ├── Detail.jsx
-        │   ├── Evidence.jsx
         │   ├── Report.jsx        ← cross-area: crea ticket en Mantenimiento
         │   └── Shift.jsx
-        ├── kitchen/              ← MIGRADO COMPLETO
-        │   ├── index.jsx
-        │   ├── Today.jsx
-        │   ├── Breakfast.jsx
-        │   ├── OrderDetail.jsx
-        │   └── Ticket.jsx        ← tema oscuro, items tap-ables que ciclan estado
-        ├── management/           ← MIGRADO COMPLETO
-        │   ├── index.jsx
-        │   ├── KPIs.jsx          ← alertas derivadas del estado global
-        │   ├── Map.jsx           ← floor plan SVG dinámico desde rooms
-        │   ├── Areas.jsx         ← pulso cross-area todo computado
-        │   └── Report.jsx
-        └── sales/                ← MIGRADO COMPLETO
-            ├── index.jsx
-            ├── Pipeline.jsx
-            ├── Calendar.jsx
-            ├── Customers.jsx
-            ├── NewReservation.jsx ← formulario con cálculo dinámico de total
-            └── VIPDetail.jsx
+        ├── maintenance/
+        │   ├── index.jsx         ← tabs: Abiertos, Pedidos, Eventos, Yo
+        │   ├── Tickets.jsx
+        │   ├── Detail.jsx        ← acuse de recibido + CommentThread
+        │   ├── History.jsx
+        │   └── Requisitions.jsx  ← vista read-only de sus pedidos a Compras
+        ├── sales/
+        │   ├── index.jsx         ← tabs: Reservas, Clientes, Eventos, Yo
+        │   ├── Pipeline.jsx
+        │   ├── Customers.jsx
+        │   ├── NewReservation.jsx← formulario con cálculo dinámico de total
+        │   └── VIPDetail.jsx
+        └── purchasing/
+            ├── index.jsx         ← tabs: Pedidos, Eventos, Yo
+            ├── Requisitions.jsx  ← gestión completa: pedido→en-camino→surtido
+            └── NewRequisition.jsx← formulario para nueva requisición
 ```
 
 ---
@@ -144,77 +138,46 @@ hpj/
 
 ---
 
-## Estado de la migración
-
-Los 7 roles ya están migrados con sus pantallas conectadas al store. La receta
-de migración paso-a-paso que estaba aquí ya cumplió su propósito — si quieres
-agregar nuevas pantallas a un rol, copia el patrón de cualquiera de las
-existentes (las más sencillas como `concierge/Requests.jsx` o `maintenance/Tickets.jsx`
-son buenos puntos de partida).
-
-### Flujos cross-area que ya funcionan
+## Flujos cross-area que ya funcionan
 
 Pruébalos cambiando entre roles en la misma sesión del navegador:
 
 - **Limpieza → Mantenimiento**: en Limpieza, FAB "Reportar incidencia" crea
-  un ticket real. Cámbiate a Mantenimiento y lo verás en su lista.
-- **Mantenimiento ciclo de vida**: aceptar → progresar → cerrar un ticket.
-  Vuelve a Limpieza · Turno y aparece bajo "Tickets que generé hoy" con su
-  status actualizado.
-- **Recepción check-in**: marca una llegada como confirmada. Refresca como
-  Gerencia y el contador de check-ins en KPIs baja.
-- **Cocina pedido completo**: Today → tap pedido 304 → OrderDetail →
-  "Iniciar preparación" → Ticket oscuro → tap items para cocinar → "Enviar
-  a sala". El order se mueve a status `sent` y sale de Today.
-- **Ventas nueva reserva**: Pipeline → tap (+) → formulario con cálculo
-  dinámico → "Confirmar y enviar a Recepción". Vuelve a Pipeline y verás
-  la reserva nueva con el monto calculado.
-- **Gerencia es espejo del sistema**: cualquier cambio en cualquier rol se
-  refleja en sus KPIs, Áreas, Mapa, Reporte (recalcula automáticamente).
-
-```jsx
-import ReceptionHome from './Home.jsx';
-import ReceptionArrivals from './Arrivals.jsx';
-// ...
-
-<Route index element={<ReceptionHome />} />
-<Route path="arrivals" element={<ReceptionArrivals />} />
-<Route path="checkin/:guestId?" element={<ReceptionCheckIn />} />
-```
+  un ticket real con `acks: { maintenance: null }`. Cámbiate a Mantenimiento,
+  verás el ticket; desde su detalle confirmas recibido → queda sellado con timestamp.
+- **Orden de Evento**: en Ventas crea un evento. Todos los demás roles lo ven
+  en su pestaña Eventos con los puntos de acuse. Cada área confirma recibido
+  desde el detalle — el punto se colorea y queda el timestamp.
+- **Cambio de PAX**: en Ventas, edita el número de comensales de un evento.
+  La actividad aparece marcada con ⚠ para que todas las áreas sepan del cambio.
+- **Requisiciones**: en Limpieza o Mantenimiento se generan requisiciones para
+  el área de Compras. Compras las ve agrupadas (Por atender / En camino / Surtidos)
+  y avanza su estado con un tap.
+- **Campanita cross-area**: el ícono de campana en todos los roles muestra la
+  misma actividad: tickets nuevos, acuses, cambios de PAX, eventos confirmados.
+- **Recepción crea reservas**: Recepción tiene el mismo formulario que Ventas
+  para crear reservas directamente desde su vista.
 
 ---
 
 ## Próximos pasos sugeridos
 
-1. **Backend con realtime**: Supabase es lo más rápido. Una tabla por entidad
-   (`rooms`, `requests`, `tickets`...), una suscripción `.on('postgres_changes')`
-   por pantalla, y reemplazas el `useData()` por un hook que lee de Supabase.
-   El shape del store ya está diseñado para esto — cada selector es un mapping
-   directo a una tabla.
+1. **Conectar store a Supabase**: el store de Zustand ya tiene el shape exacto
+   de las tablas. Cada `useTickets()`, `useEvents()`, `useRequisitions()` puede
+   reemplazarse por un hook que hace `select` + suscripción `postgres_changes`.
+   La actividad cross-area ya usa Realtime en modo online.
 
-2. **Auth real**: Supabase Auth con email/contraseña, o magic link. El rol del
-   usuario lo guardas en una tabla `profiles` con campo `role`. El selector
-   visual de `/login` queda solo para dev — en producción `RequireAuth` valida
-   contra la sesión real.
+2. **PWA**: agrega `vite-plugin-pwa`, manifest y service worker. El staff
+   instala la app en la pantalla de inicio del celu y se siente nativa, con
+   offline básico para tareas y checklists.
 
-3. **PWA**: agrega `vite-plugin-pwa`, manifest y service worker. El staff
-   instala la app en su pantalla de inicio del celu y se siente nativa, con
-   offline básico para tareas/checklists.
+3. **NewEvent para Ventas**: la lista de eventos muestra un `+` que lleva a
+   `/sales/events/new` — falta crear el formulario `NewEvent.jsx` con los
+   campos del modelo (nombre, fecha, hora, salón, pax, cliente).
 
-4. **Refinar chats**: por ahora son estáticos. Cuando agregues una tabla
-   `messages` con `from_role`, `to_guest`, `body`, `read_at`, los Chat de
-   Recepción y Concierge se conectan igual que los demás roles (selector +
-   acción).
-
-5. **Notificaciones cross-area visibles**: usar el primitivo `<Broadcast/>`
-   que ya existe en `shared.jsx`. Cuando un ticket nuevo nace en Limpieza,
-   inyectar un broadcast en la timeline de Mantenimiento. Cambia drásticamente
-   la sensación de coordinación.
-
-6. **Vista desktop nativa para Gerencia**: las pantallas actuales son mobile.
-   Para Gerencia tiene sentido un layout más amplio (multi-columna) en pantalla
-   grande. Detecta `window.innerWidth` o usa CSS grid con breakpoints en el
-   shell del rol.
+4. **Push notifications**: cuando un evento cambia de PAX o nace un ticket
+   urgente, notificar al dispositivo del área afectada (Supabase Edge Function
+   + Web Push API).
 
 ---
 
@@ -225,16 +188,11 @@ import ReceptionArrivals from './Arrivals.jsx';
   navegador, o en la app llama a `useActions().resetAll()`.
 
 - Si cambias el shape de `seed.js`, sube `version` en `data.js` para que el
-  cache viejo se descarte automáticamente al recargar (actualmente `version: 6`).
+  cache viejo se descarte automáticamente al recargar (actualmente `version: 8`).
 
-- Las pantallas son **mobile-first** por diseño. En desktop las renderizo
-  dentro de un marco de teléfono (412×880) para que la composición no se
-  rompa.
+- Las pantallas son **mobile-first** por diseño. En desktop se renderizan
+  dentro de un marco de teléfono (412×880) para que la composición no se rompa.
 
-- El archivo `design-canvas.jsx` original (con todas las pantallas en grid) ya
-  no se usa — sirvió para el moodboard y ya cumplió. Si quieres conservar esa
-  vista para presentaciones, métela como ruta `/design` opcional fuera del
-  guard de auth.
-
-- Cuatro componentes que el ui-shared original no tenía (`TLItem`, `Bubble`,
-  `DayStamp`, `SystemNote`, `PhotoTile`) ahora viven en `src/ui/shared.jsx`.
+- El store tiene modo dual: si las env vars de Supabase están presentes corre
+  en modo online (Auth real + Realtime); si no, cae a Zustand + localStorage.
+  El link "Modo demo · sin servidor →" del login siempre fuerza el modo offline.

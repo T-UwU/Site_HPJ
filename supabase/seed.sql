@@ -139,3 +139,41 @@ insert into public.pending_order_alert (id, alert) values
       "allergyText":"ALERGIA frutos secos"
     }'::jsonb)
 on conflict (id) do update set alert = excluded.alert;
+
+-- ─── Events (Ordenes de Evento) ────────────────────────────────────
+insert into public.events (id, name, date, time, salon, pax, client, created_by, menu, allergens, notes, status, acks) values
+  ('EVT-001', 'Cena de gala · Congreso AMG',   '2026-05-20', '20:00', 'Salón Palacio',    80, 'Dr. Iván Solís',    'sales',
+    'Menú degustación 4 tiempos · maridaje incluido',
+    'Frutos secos en postre (confirmar con chef)',
+    'Mesa de honor 10pax · discurso 20:45 · música en vivo 21:30',
+    'confirmado',
+    '{"housekeeping":"2026-05-14T09:12:00","maintenance":null,"reception":"2026-05-14T10:05:00","purchasing":null}'::jsonb),
+  ('EVT-002', 'Desayuno ejecutivo · Grupo AMG', '2026-05-21', '08:00', 'Sala Chapultepec', 18, 'Dr. Iván Solís',    'sales',
+    'Buffet continental · estación de café',
+    null,
+    'Proyector + pantalla · presentación a las 08:30',
+    'confirmado',
+    '{"housekeeping":"2026-05-14T11:30:00","maintenance":"2026-05-14T11:45:00","reception":null,"purchasing":"2026-05-14T12:00:00"}'::jsonb),
+  ('EVT-003', 'Cóctel de bienvenida',           '2026-05-20', '18:00', 'Terraza Principal', 35, 'Dr. Iván Solís',   'sales',
+    'Bocadillos variados · barra libre 2h',
+    null,
+    'Setup: 60 min antes · sillas tipo coctel · iluminación cálida',
+    'borrador',
+    '{"housekeeping":null,"maintenance":null,"reception":null,"purchasing":null}'::jsonb)
+on conflict (id) do nothing;
+
+-- ─── Comments ──────────────────────────────────────────────────────
+insert into public.comments (entity_type, entity_id, author, role, body, created_at) values
+  ('ticket',  'M-217',   'Mariana C.',     'housekeeping', 'Confirmo: inodoro sin descarga. Hab en uso — huésped avisado de la demora.',                           '2026-05-14T14:10:00Z'),
+  ('ticket',  'M-217',   'Roberto V.',     'maintenance',  'En camino con refacciones. ETA 20 min.',                                                                '2026-05-14T14:28:00Z'),
+  ('event',   'EVT-001', 'Ana Torres',     'sales',        'Confirmado con el cliente: menú cerrado, 80 pax fijos. Sin cambios de última hora.',                   '2026-05-14T09:00:00Z'),
+  ('event',   'EVT-001', 'Lucía Ramírez',  'reception',    'Checkeado con reservas. El bloqueo de habitaciones del grupo ya está cargado en el sistema.',          '2026-05-14T10:05:00Z')
+on conflict do nothing;
+
+-- ─── Requisitions ──────────────────────────────────────────────────
+insert into public.requisitions (id, area, item, qty, requested_by, status, created_at, updated_at) values
+  ('REQ-001', 'maintenance',  'Cinta de teflón 1/2 plg (rollo x10)',          5,  'Roberto V.',   'surtido',   '2026-05-12T08:00:00Z', '2026-05-13T10:00:00Z'),
+  ('REQ-002', 'housekeeping', 'Bolsas de basura negras 60L (caja x100)',       3,  'Mariana C.',   'surtido',   '2026-05-12T09:30:00Z', '2026-05-13T11:00:00Z'),
+  ('REQ-003', 'maintenance',  'Foco LED GU10 6W (pack x12)',                   2,  'Roberto V.',   'en-camino', '2026-05-14T07:45:00Z', '2026-05-14T09:00:00Z'),
+  ('REQ-004', 'housekeeping', 'Amenities set (champú + acondicionador) x200',  4,  'Mariana C.',   'pedido',    '2026-05-14T13:20:00Z', '2026-05-14T13:20:00Z')
+on conflict (id) do nothing;

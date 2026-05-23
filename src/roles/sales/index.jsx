@@ -12,24 +12,28 @@ import SalesVIPDetail      from './VIPDetail.jsx';
 import RoleMe              from '../../ui/RoleMe.jsx';
 import AreaChat            from '../../ui/AreaChat.jsx';
 import Notifications       from '../../ui/Notifications.jsx';
-import { useChatUnread }   from '../../store/chat.js';
+import { EventsList, EventDetail } from '../../ui/EventsCalendar.jsx';
 import { useActivityUnread } from '../../store/activity.js';
 import { useCurrentUser }  from '../../store/auth.js';
 
 function SalesShell() {
   const { pathname } = useLocation();
-  const user     = useCurrentUser();
-  const chatUnread = useChatUnread(user?.roleId);
-  const actUnread  = useActivityUnread(user?.roleId);
-  const unread = chatUnread + actUnread;
+  const user      = useCurrentUser();
+  const actUnread = useActivityUnread(user?.roleId);
 
-  const hideTabs = pathname.includes('/new') || pathname.includes('/customer/') || pathname.includes('/chat') || pathname.includes('/notifications');
+  const hideTabs =
+    pathname.includes('/new')           ||
+    pathname.includes('/customer/')     ||
+    pathname.includes('/chat')          ||
+    pathname.includes('/notifications') ||
+    pathname.includes('/events/');
 
   const tabs = [
-    { id: 'pipe', label: 'Reservas', icon: I.list,  to: '/sales' },
-    { id: 'cust', label: 'Clientes', icon: I.users, to: '/sales/customers' },
-    { id: 'chat', label: 'Chat',     icon: I.msg,   to: '/sales/chat', badge: unread || undefined },
-    { id: 'me',   label: 'Yo',       icon: I.user,  to: '/sales/me' },
+    { id: 'pipe',   label: 'Reservas', icon: I.list,  to: '/sales' },
+    { id: 'cust',   label: 'Clientes', icon: I.users, to: '/sales/customers' },
+    { id: 'events', label: 'Eventos',  icon: I.cal,   to: '/sales/events' },
+    { id: 'me',     label: 'Yo',       icon: I.user,  to: '/sales/me',
+      badge: actUnread || undefined },
   ];
 
   return (
@@ -46,13 +50,15 @@ export default function SalesRoutes() {
   return (
     <Routes>
       <Route element={<SalesShell />}>
-        <Route index               element={<SalesPipeline />} />
-        <Route path="customers"    element={<SalesCustomers />} />
-        <Route path="customer/:id" element={<SalesVIPDetail />} />
-        <Route path="new"          element={<SalesNewReservation />} />
-        <Route path="chat"         element={<AreaChat role="sales" />} />
+        <Route index                element={<SalesPipeline />} />
+        <Route path="customers"     element={<SalesCustomers />} />
+        <Route path="customer/:id"  element={<SalesVIPDetail />} />
+        <Route path="new"           element={<SalesNewReservation />} />
+        <Route path="events"        element={<EventsList role="sales" />} />
+        <Route path="events/:id"    element={<EventDetail role="sales" />} />
+        <Route path="chat"          element={<AreaChat role="sales" />} />
         <Route path="notifications" element={<Notifications />} />
-        <Route path="me"           element={<RoleMe />} />
+        <Route path="me"            element={<RoleMe />} />
       </Route>
     </Routes>
   );

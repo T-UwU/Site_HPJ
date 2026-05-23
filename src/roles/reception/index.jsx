@@ -14,30 +14,30 @@ import RoleMe               from '../../ui/RoleMe.jsx';
 import AreaChat             from '../../ui/AreaChat.jsx';
 import Notifications        from '../../ui/Notifications.jsx';
 import SalesNewReservation  from '../sales/NewReservation.jsx';
-import { useChatUnread }    from '../../store/chat.js';
+import { EventsList, EventDetail } from '../../ui/EventsCalendar.jsx';
 import { useActivityUnread } from '../../store/activity.js';
 import { useCurrentUser }   from '../../store/auth.js';
 
 function ReceptionShell() {
   const { pathname } = useLocation();
-  const user      = useCurrentUser();
-  const chatUnread = useChatUnread(user?.roleId);
-  const actUnread  = useActivityUnread(user?.roleId);
-  const unread = chatUnread + actUnread;
+  const user     = useCurrentUser();
+  const actUnread = useActivityUnread(user?.roleId);
 
   const hideTabs =
     pathname.includes('/checkin')       ||
     pathname.includes('/guest/')        ||
     pathname.includes('/chat')          ||
     pathname.includes('/new')           ||
-    pathname.includes('/notifications');
+    pathname.includes('/notifications') ||
+    pathname.includes('/events/');      // detalle de evento oculta tabs
 
   const tabs = [
     { id: 'home',     label: 'Inicio',   icon: I.home,     to: '/reception' },
     { id: 'arrivals', label: 'Llegadas', icon: I.bellDesk, to: '/reception/arrivals' },
     { id: 'rooms',    label: 'Habs.',    icon: I.bed,      to: '/reception/rooms' },
-    { id: 'chat',     label: 'Chat',     icon: I.msg,      to: '/reception/chat', badge: unread || undefined },
-    { id: 'me',       label: 'Yo',       icon: I.user,     to: '/reception/me' },
+    { id: 'events',   label: 'Eventos',  icon: I.cal,      to: '/reception/events' },
+    { id: 'me',       label: 'Yo',       icon: I.user,     to: '/reception/me',
+      badge: actUnread || undefined },
   ];
 
   return (
@@ -54,12 +54,14 @@ export default function ReceptionRoutes() {
   return (
     <Routes>
       <Route element={<ReceptionShell />}>
-        <Route index                   element={<ReceptionHome />} />
+        <Route index                    element={<ReceptionHome />} />
         <Route path="arrivals"          element={<ReceptionArrivals />} />
         <Route path="checkin/:guestId"  element={<ReceptionCheckIn />} />
         <Route path="rooms"             element={<ReceptionRooms />} />
         <Route path="guest/:guestId"    element={<ReceptionGuestDetail />} />
         <Route path="new"               element={<SalesNewReservation role="reception" />} />
+        <Route path="events"            element={<EventsList role="reception" />} />
+        <Route path="events/:id"        element={<EventDetail role="reception" />} />
         <Route path="chat"              element={<AreaChat role="reception" />} />
         <Route path="notifications"     element={<Notifications />} />
         <Route path="me"                element={<RoleMe />} />

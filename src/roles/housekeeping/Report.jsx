@@ -48,6 +48,7 @@ export default function HousekeepingReport() {
       status: 'abierto',
       priority,
       reportedAt: new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
+      acks: { maintenance: null }, // acuse pendiente; Mantenimiento confirma en su detalle
     });
     // Regresa a Tasks; el ticket ya está en el store y aparece en Mantenimiento
     navigate('/housekeeping');

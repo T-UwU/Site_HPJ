@@ -15,6 +15,7 @@ import ReceptionRoutes    from './roles/reception/index.jsx';
 import HousekeepingRoutes from './roles/housekeeping/index.jsx';
 import SalesRoutes        from './roles/sales/index.jsx';
 import MaintenanceRoutes  from './roles/maintenance/index.jsx';
+import PurchasingRoutes   from './roles/purchasing/index.jsx';
 
 function RootRedirect() {
   const user = useAuth((s) => s.user);
@@ -72,6 +73,9 @@ export default function App() {
             }/>
             <Route path="/maintenance/*" element={
               <RequireAuth role="maintenance"><MaintenanceRoutes /></RequireAuth>
+            }/>
+            <Route path="/purchasing/*" element={
+              <RequireAuth role="purchasing"><PurchasingRoutes /></RequireAuth>
             }/>
 
             <Route path="*" element={<NotFound />} />

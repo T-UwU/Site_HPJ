@@ -20,14 +20,16 @@ export const ROLES = {
   reception:    { id: 'reception',    label: 'Recepción',     home: '/reception',    color: 'var(--brass)' },
   maintenance:  { id: 'maintenance',  label: 'Mantenimiento', home: '/maintenance',  color: 'var(--danger)' },
   housekeeping: { id: 'housekeeping', label: 'Limpieza',      home: '/housekeeping', color: 'var(--info)' },
+  purchasing:   { id: 'purchasing',   label: 'Compras',       home: '/purchasing',   color: '#2D6A4F' },
 };
 
 // Usuarios demo (solo se usan en modo OFFLINE)
 const DEMO_USERS = {
-  sales:        { name: 'Patricia Salinas', shift: 'mat.' },
-  reception:    { name: 'Lucía Ramírez',    shift: 'mat.' },
-  maintenance:  { name: 'Eduardo Galindo',  shift: 'mat.' },
-  housekeeping: { name: 'Mariana Cruz',     shift: 'mat.' },
+  sales:        { name: 'Patricia Salinas',  shift: 'mat.' },
+  reception:    { name: 'Lucía Ramírez',     shift: 'mat.' },
+  maintenance:  { name: 'Eduardo Galindo',   shift: 'mat.' },
+  housekeeping: { name: 'Mariana Cruz',      shift: 'mat.' },
+  purchasing:   { name: 'Roberto Fuentes',   shift: 'mat.' },
 };
 
 export const useAuth = create(
