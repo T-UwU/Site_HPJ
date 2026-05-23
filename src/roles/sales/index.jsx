@@ -13,6 +13,7 @@ import RoleMe              from '../../ui/RoleMe.jsx';
 import AreaChat            from '../../ui/AreaChat.jsx';
 import Notifications       from '../../ui/Notifications.jsx';
 import { EventsList, EventDetail } from '../../ui/EventsCalendar.jsx';
+import SalesNewEvent          from './NewEvent.jsx';
 import { useActivityUnread } from '../../store/activity.js';
 import { useCurrentUser }  from '../../store/auth.js';
 
@@ -26,6 +27,7 @@ function SalesShell() {
     pathname.includes('/customer/')     ||
     pathname.includes('/chat')          ||
     pathname.includes('/notifications') ||
+    pathname.endsWith('/events/new')    ||
     pathname.includes('/events/');
 
   const tabs = [
@@ -55,6 +57,7 @@ export default function SalesRoutes() {
         <Route path="customer/:id"  element={<SalesVIPDetail />} />
         <Route path="new"           element={<SalesNewReservation />} />
         <Route path="events"        element={<EventsList role="sales" />} />
+        <Route path="events/new"    element={<SalesNewEvent />} />
         <Route path="events/:id"    element={<EventDetail role="sales" />} />
         <Route path="chat"          element={<AreaChat role="sales" />} />
         <Route path="notifications" element={<Notifications />} />
