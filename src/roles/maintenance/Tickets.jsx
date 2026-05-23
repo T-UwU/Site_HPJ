@@ -7,7 +7,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  PhoneScreen, BrandStrip, AppBar, IconBtn, Body, Eyebrow, Metric,
+  PhoneScreen, BrandStrip, AppBar, IconBtn, Body, Eyebrow,
   Card, Pill, RoleChip, FAB,
 } from '../../ui/shared.jsx';
 import { I } from '../../ui/icons.jsx';
@@ -46,17 +46,11 @@ export default function MaintenanceTickets() {
         eyebrow="Eduardo Galindo · Turno mat."
         title="Tickets abiertos"
         subtitle={`${active.length} abiertos · ${highPriority} alta prioridad`}
-        trailing={<>
-          <IconBtn icon={I.filter}/>
+        trailing={
           <IconBtn icon={I.bell} badge={actUnread || undefined} onClick={() => navigate('/maintenance/notifications')}/>
-        </>}
+        }
       />
       <Body style={{ paddingBottom: 80 }}>
-        <div style={{ padding: '4px 16px 0', display: 'flex', gap: 8 }}>
-          <Metric label="SLA en riesgo" value="1" sub="< 30m" kind="down" foot="Ticket #M-217"/>
-          <Metric label="MTTR" value="42m" sub="−8m" kind="up" foot="vs. estándar"/>
-        </div>
-
         {urgent.length > 0 && (
           <>
             <Eyebrow>Urgentes</Eyebrow>

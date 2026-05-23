@@ -19,11 +19,9 @@ export default function SalesPipeline() {
 
   // Filtros
   const filters = [
-    { id: 'todas',  label: `Todas ${reservations.length}` },
-    { id: 'hoy',    label: `Hoy ${reservations.filter((r) => r.today).length}` },
-    { id: 'semana', label: `Esta semana ${reservations.length}` },
-    { id: 'vip',    label: `VIP ${reservations.filter((r) => r.vip).length}` },
-    { id: 'grupos', label: `Grupos ${reservations.filter((r) => r.group).length}` },
+    { id: 'hoy',   label: `Hoy ${reservations.filter((r) => r.today).length}` },
+    { id: 'todas', label: `Todas ${reservations.length}` },
+    { id: 'vip',   label: `VIP ${reservations.filter((r) => r.vip).length}` },
   ];
 
   const visible = reservations.filter((r) => {
@@ -36,13 +34,8 @@ export default function SalesPipeline() {
   const today = visible.filter((r) => r.today);
   const upcoming = visible.filter((r) => !r.today);
 
-  // Total del día — suma de amount de reservas de hoy
-  const dailyVolume = reservations
-    .filter((r) => r.today)
-    .reduce((sum, r) => sum + (r.amount || 0), 0);
-
   const totalConfirmed = reservations.filter((r) => r.status === 'confirmada').length;
-  const totalPending = reservations.filter((r) => r.status === 'por-confirmar').length;
+  const totalPending   = reservations.filter((r) => r.status === 'por-confirmar').length;
 
   return (
     <PhoneScreen>
@@ -68,23 +61,6 @@ export default function SalesPipeline() {
       </div>
 
       <Body style={{ paddingBottom: 80 }}>
-        <Eyebrow right={`MXN ${dailyVolume.toLocaleString('es-MX')}`}>Volumen del día</Eyebrow>
-        <div style={{ padding: '0 16px' }}>
-          <Card style={{ padding: 14 }}>
-            <div style={{ display: 'flex', gap: 4, height: 36, alignItems: 'flex-end' }}>
-              {[36, 42, 58, 71, 84, 76, 68, 82, 90, 72, 64, 55].map((v, i) => (
-                <div key={i} style={{
-                  flex: 1, height: v + '%', borderRadius: 2,
-                  background: i === 7 ? 'var(--brass)' : 'var(--forest-soft)',
-                }}/>
-              ))}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 10, color: 'var(--muted-2)', fontFamily: 'var(--mono)' }}>
-              <span>06</span><span>12</span><span>18</span><span>24</span>
-            </div>
-          </Card>
-        </div>
-
         {today.length > 0 && (
           <>
             <Eyebrow>Llegan hoy</Eyebrow>

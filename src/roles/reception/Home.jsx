@@ -7,7 +7,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  PhoneScreen, BrandStrip, AppBar, IconBtn, Body, Metric, Eyebrow,
+  PhoneScreen, BrandStrip, AppBar, IconBtn, Body, Eyebrow,
   Card, Avatar, Pill,
 } from '../../ui/shared.jsx';
 import { I } from '../../ui/icons.jsx';
@@ -41,11 +41,6 @@ export default function ReceptionHome() {
         </>}
       />
       <Body style={{ paddingBottom: 80 }}>
-        <div style={{ padding: '8px 16px 0', display: 'flex', gap: 8 }}>
-          <Metric label="Ocupación" value="86%" sub="+4" kind="up" foot="62 de 72 hab."/>
-          <Metric label="ADR" value="$3,840" sub="MXN" foot="—"/>
-        </div>
-
         <Eyebrow right="ver todo">Pulso del día</Eyebrow>
         <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
           <Card

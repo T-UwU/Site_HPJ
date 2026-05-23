@@ -34,14 +34,13 @@ export default function HousekeepingTasks() {
         eyebrow="Mariana Cruz · Piso 3"
         title="Mis tareas"
         subtitle={`${tasks.length} asignadas · ${completed.length} completadas`}
-        trailing={<>
-          <IconBtn icon={I.filter}/>
+        trailing={
           <IconBtn icon={I.bell} badge={actUnread || undefined} onClick={() => navigate('/housekeeping/notifications')}/>
-        </>}
+        }
       />
       <ProgressBar pct={pct}/>
       <Body style={{ paddingBottom: 80 }}>
-        <Eyebrow right="ordenar por prioridad">Pendientes</Eyebrow>
+        <Eyebrow>Pendientes</Eyebrow>
         <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
           {pending.map((t) => (
             <TaskCard
