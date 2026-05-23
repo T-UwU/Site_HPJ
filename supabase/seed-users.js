@@ -48,14 +48,15 @@ const admin = createClient(url, key, {
 const DEMO_PASSWORD = 'demo1234';
 
 const USERS = [
-  { email: 'ventas@palaciojulio.test',        name: 'Patricia Salinas',  role_id: 'sales' },
   { email: 'recepcion@palaciojulio.test',     name: 'Lucía Ramírez',     role_id: 'reception' },
-  { email: 'mantenimiento@palaciojulio.test', name: 'Eduardo Galindo',   role_id: 'maintenance' },
   { email: 'limpieza@palaciojulio.test',      name: 'Mariana Cruz',      role_id: 'housekeeping' },
+  { email: 'ventas@palaciojulio.test',        name: 'Patricia Salinas',  role_id: 'sales' },
+  { email: 'mantenimiento@palaciojulio.test', name: 'Eduardo Galindo',   role_id: 'maintenance' },
+  { email: 'compras@palaciojulio.test',       name: 'Roberto Fuentes',   role_id: 'purchasing' },
 ];
 
 // ── Ejecutar ────────────────────────────────────────────────────────
-console.log(`\n🏨 Creando ${USERS.length} usuarios demo en ${url}\n`);
+console.log(`\nHotel Palacio Julio · Creando ${USERS.length} usuarios demo en ${url}\n`);
 
 let created = 0;
 let skipped = 0;

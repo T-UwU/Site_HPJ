@@ -2,6 +2,36 @@
 
 Esta guía deja el backend listo desde cero. Calcula 15–20 minutos la primera vez.
 
+> **¿Qué usa Supabase realmente?**
+> - ✅ **Auth** — login con email/password, sesiones reales
+> - ✅ **Actividad cross-area** — la tabla `activity` con Realtime (campanita)
+> - ⏳ **Datos operativos** (tickets, eventos, requisiciones…) — las tablas existen
+>   y el seed las llena, pero la app aún los lee del store local (Zustand).
+>   En modo online los cambios no persisten entre sesiones ni se sincronizan entre
+>   dispositivos todavía. Eso es el siguiente paso de integración.
+>
+> En la práctica: Auth + Realtime funcionan en modo online. Todo lo demás funciona
+> igual que en modo demo.
+
+---
+
+## Si ya tienes el proyecto en Supabase y solo quieres aplicar las migraciones nuevas
+
+Corre solo los 4 archivos nuevos en el SQL Editor (en este orden):
+
+```
+supabase/add-events.sql
+supabase/add-comments.sql
+supabase/add-purchasing.sql
+supabase/migrate-roles.sql
+```
+
+Si ya tienes usuarios creados y quieres agregar el de Compras, crea uno más:
+- Email: `compras@palaciojulio.test` · Password: `demo1234`
+- Metadata: `{ "name": "Roberto Fuentes", "role_id": "purchasing", "shift": "mat." }`
+
+---
+
 ---
 
 ## 1 · Crear el proyecto
@@ -137,9 +167,10 @@ y vuelve a crearlo.
   "Enable email confirmations" está deshabilitado, o no podrás entrar
   hasta verificar el correo.
 
-**No veo cambios en tiempo real**
-Por ahora la app sigue leyendo del store local (Zustand). El siguiente
-pase de migración conecta los hooks de datos a Supabase con realtime.
+**Hice cambios (ticket, evento, reserva) en modo online y al recargar desaparecieron**
+Esperado por ahora. Los datos operativos (tickets, eventos, etc.) viven en
+Zustand/localStorage. Las tablas en Supabase existen pero los hooks del store
+aún no leen de ellas. La actividad cross-area sí persiste en Supabase.
 
 **`npm run seed:users` truena con "fetch is not defined"**
 Necesitas Node 18+. Verifica con `node --version`.
