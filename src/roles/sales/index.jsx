@@ -34,6 +34,7 @@ function SalesShell() {
     { id: 'pipe',   label: 'Reservas', icon: I.list,  to: '/sales' },
     { id: 'cust',   label: 'Clientes', icon: I.users, to: '/sales/customers' },
     { id: 'events', label: 'Eventos',  icon: I.cal,   to: '/sales/events' },
+    { id: 'chat',   label: 'Chat',     icon: I.msg,   to: '/sales/chat' },
     { id: 'me',     label: 'Yo',       icon: I.user,  to: '/sales/me',
       badge: actUnread || undefined },
   ];

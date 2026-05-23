@@ -32,6 +32,7 @@ function HousekeepingShell() {
     { id: 'tasks',  label: 'Tareas',  icon: I.list,  to: '/housekeeping' },
     { id: 'shift',  label: 'Turno',   icon: I.clock, to: '/housekeeping/shift' },
     { id: 'events', label: 'Eventos', icon: I.cal,   to: '/housekeeping/events' },
+    { id: 'chat',   label: 'Chat',    icon: I.msg,   to: '/housekeeping/chat' },
     { id: 'me',     label: 'Yo',      icon: I.user,  to: '/housekeeping/me',
       badge: actUnread || undefined },
   ];

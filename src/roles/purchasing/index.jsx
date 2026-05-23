@@ -29,6 +29,7 @@ function PurchasingShell() {
   const tabs = [
     { id: 'reqs',   label: 'Pedidos', icon: I.pkg,  to: '/purchasing' },
     { id: 'events', label: 'Eventos', icon: I.cal,  to: '/purchasing/events' },
+    { id: 'chat',   label: 'Chat',    icon: I.msg,  to: '/purchasing/chat' },
     { id: 'me',     label: 'Yo',      icon: I.user, to: '/purchasing/me',
       badge: actUnread || undefined },
   ];

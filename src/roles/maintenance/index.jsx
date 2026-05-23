@@ -31,6 +31,7 @@ function MaintenanceShell() {
     { id: 'open',  label: 'Abiertos', icon: I.wrench, to: '/maintenance' },
     { id: 'reqs',  label: 'Pedidos',  icon: I.pkg,    to: '/maintenance/requisitions' },
     { id: 'events',label: 'Eventos',  icon: I.cal,    to: '/maintenance/events' },
+    { id: 'chat',  label: 'Chat',     icon: I.msg,    to: '/maintenance/chat' },
     { id: 'me',    label: 'Yo',       icon: I.user,   to: '/maintenance/me',
       badge: actUnread || undefined },
   ];

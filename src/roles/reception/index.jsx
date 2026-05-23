@@ -36,6 +36,7 @@ function ReceptionShell() {
     { id: 'arrivals', label: 'Llegadas', icon: I.bellDesk, to: '/reception/arrivals' },
     { id: 'rooms',    label: 'Habs.',    icon: I.bed,      to: '/reception/rooms' },
     { id: 'events',   label: 'Eventos',  icon: I.cal,      to: '/reception/events' },
+    { id: 'chat',     label: 'Chat',     icon: I.msg,      to: '/reception/chat' },
     { id: 'me',       label: 'Yo',       icon: I.user,     to: '/reception/me',
       badge: actUnread || undefined },
   ];
