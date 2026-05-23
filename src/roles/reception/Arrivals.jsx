@@ -7,10 +7,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  PhoneScreen, BrandStrip, AppBar, IconBtn, Body, Eyebrow,
+  PhoneScreen, BrandStrip, AppBar, Body, Eyebrow,
   Card, Avatar, Pill,
 } from '../../ui/shared.jsx';
-import { I } from '../../ui/icons.jsx';
 import { useArrivals } from '../../store/data.js';
 
 export default function ReceptionArrivals() {
@@ -39,10 +38,6 @@ export default function ReceptionArrivals() {
       <AppBar
         eyebrow={`${arrivals.length} reservas · ${arrivals.filter(a => !a.done).length} pendientes`}
         title="Llegadas hoy"
-        trailing={<>
-          <IconBtn icon={I.filter}/>
-          <IconBtn icon={I.search}/>
-        </>}
       />
       <div style={{ padding: '4px 16px 8px', display: 'flex', gap: 6, overflowX: 'auto' }}>
         {filters.map((f) => (
@@ -88,34 +83,32 @@ export default function ReceptionArrivals() {
 }
 
 function ArrivalCard({ arrival, onOpen, onCheckIn, done }) {
-  const { guest, vip, room, plan, stay, time, status, statusLabel } = arrival;
+  const { guest, vip, room, plan, time, status, statusLabel } = arrival;
   return (
-    <Card style={{ padding: 12, opacity: done ? 0.55 : 1 }}>
-      <div style={{ display: 'flex', gap: 12 }} onClick={onOpen}>
+    <Card style={{ padding: 12, opacity: done ? 0.55 : 1 }} onClick={onOpen}>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
         <Avatar name={guest} size={40}/>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-              <span style={{ fontSize: 15, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{guest}</span>
-              {vip && <span style={{ fontFamily: 'var(--serif)', fontSize: 11, color: 'var(--brass-deep)', letterSpacing: '0.2em' }}>VIP</span>}
-            </div>
-            <span className="hpj-mono" style={{ fontSize: 13 }}>{time}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+            <span style={{ fontSize: 15, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{guest}</span>
+            {vip && <span style={{ fontFamily: 'var(--serif)', fontSize: 11, color: 'var(--brass-deep)', letterSpacing: '0.2em' }}>VIP</span>}
           </div>
           <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>Hab {room} · {plan}</div>
-          <div style={{ fontSize: 11, color: 'var(--muted-2)', marginTop: 1 }}>{stay}</div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5, flexShrink: 0 }}>
+          <span className="hpj-mono" style={{ fontSize: 13 }}>{time}</span>
+          <Pill kind={status} style={{ height: 18, fontSize: 10 }}>{statusLabel}</Pill>
         </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--line-soft)' }}>
-        <Pill kind={status}>{statusLabel}</Pill>
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button onClick={onOpen} className="btn btn-ghost" style={{ padding: '6px 10px', fontSize: 12 }}>Detalle</button>
-          {!done && (
-            <button onClick={onCheckIn} className="btn btn-primary" style={{ padding: '6px 12px', fontSize: 12 }}>
-              Check-in
-            </button>
-          )}
-        </div>
-      </div>
+      {!done && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onCheckIn(); }}
+          className="btn btn-primary"
+          style={{ width: '100%', marginTop: 10, fontSize: 13 }}
+        >
+          Check-in
+        </button>
+      )}
     </Card>
   );
 }

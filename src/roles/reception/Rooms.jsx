@@ -7,9 +7,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  PhoneScreen, BrandStrip, AppBar, IconBtn, Body,
+  PhoneScreen, BrandStrip, AppBar, Body,
 } from '../../ui/shared.jsx';
-import { I } from '../../ui/icons.jsx';
 import { useRooms } from '../../store/data.js';
 
 // Mapeo de status del seed → status visual del tile
@@ -40,8 +39,7 @@ export default function ReceptionRooms() {
   return (
     <PhoneScreen>
       <BrandStrip role="reception"/>
-      <AppBar title="Habitaciones" subtitle={`${rooms.length} totales · ${occupied} ocupadas`}
-        trailing={<><IconBtn icon={I.grid}/><IconBtn icon={I.map}/></>}/>
+      <AppBar title="Habitaciones" subtitle={`${rooms.length} totales · ${occupied} ocupadas`}/>
       <div style={{ padding: '6px 16px 10px', display: 'flex', gap: 12, flexWrap: 'wrap',
         fontSize: 11, color: 'var(--muted)' }}>
         <span><span className="sq sq-busy"/> Ocupada</span>
